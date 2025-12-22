@@ -13,23 +13,17 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-
-    - name: Install dependencies
-      run: npm install axios cheerio
-
-    - name: Fetch Keno Data
-      run: node fetch_keno.js
+    - name: Fetch Keno JSON
+      run: |
+        mkdir -p data
+        curl -s https://raw.githubusercontent.com/vietvudanh/vietlott-data/master/data/keno.json -o data/keno.json
 
     - name: Commit & Push
       run: |
         git config user.name "github-actions"
         git config user.email "actions@github.com"
         git add data/keno.json
-        git commit -m "Auto update Keno data"
+        git commit -m "Auto update Keno data via curl"
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
