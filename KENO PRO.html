@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Keno – Thống kê Hot & Cold</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  text-align: center;
+}
+
+textarea {
+  width: 90%;
+  height: 180px;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+button {
+  padding: 8px 16px;
+  margin: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#info {
+  margin: 15px 0;
+  font-weight: bold;
+  font-size: 22px;
+  white-space: pre-line;
+}
+
+#board {
+  margin: 0 auto;
+  border-collapse: collapse;
+}
+
+td {
+  width: 68px;
+  height: 68px;
+  border: 1px solid #aaa;
+  font-size: 22px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Chia bảng 4 phần */
+td.divider-v {
+  border-right: 3px solid #555;
+}
+tr.divider-h td {
+  border-bottom: 3px solid #555;
+}
+
+/* HIT */
+.hit {
+  background: #4caf50;
+  color: #fff;
+}
+
+/* HOT */
+.hot1 { color: #ffcc80; font-weight: bold; }
+.hot2 { color: #ff9800; font-weight: bold; }
+.hot3 { color: #e65100; font-weight: bold; }
+
+/* COLD */
+.cold1 { color: #90caf9; }
+.cold2 { color: #1e88e5; font-weight: bold; }
+.cold3 { color: #0d47a1; font-weight: bold; }
+
+/* Gạch chân kỳ trước */
+.prev {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+/* Legend */
+.legend {
+  margin: 25px auto;
+  max-width: 900px;
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: left;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Keno – Thống kê Hot / Cold (10 kỳ gần nhất)</h2>
+
+<textarea id="input" placeholder="Dán dữ liệu Keno tại đây"></textarea><br>
+
+<button onclick="loadData()">Nạp dữ liệu</button>
+<button onclick="prev()">◀ Kỳ sau</button>
+<button onclick="next()">Kỳ trước ▶</button>
+
+<div id="info"></div>
+<table id="board"></table>
+
+<div class="legend">
+<b>Giải thích cho khách:</b><br><br>
+
+🟢 <b>Kết quả kỳ đang xem</b>: tô nền xanh lá<br><br>
+
+🔥 <b>Hot</b> – số xuất hiện nhiều trong 10 kỳ gần nhất:<br>
+• 6–7 lần: cam đậm<br>
+• 4–5 lần: cam vừa<br>
+• 3 lần: cam nhạt<br><br>
+
+❄ <b>Cold (gan)</b> – số không xuất hiện liên tiếp:<br>
+• ≥8 kỳ gan: xanh đậm<br>
+• 6–7 kỳ gan: xanh vừa<br>
+• 4–5 kỳ gan: xanh nhạt<br><br>
+
+— <b>Gạch chân</b>: số vừa ra ở kỳ trước<br><br>
+
+<i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
+</div>
+
+<script>
+let results = [];
+let index = 0;
+const WINDOW = 10;
+
+function loadData() {
+  const lines = document.getElementById('input').value
+    .replace(/\u00A0/g, ' ')
+    .trim()
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l);
+
+  results = [];
+
+  for (let i = 0; i + 1 < lines.length; i += 2) {
+    const line1 = lines[i].split(/\s+/);
+    const line2 = lines[i + 1].split(/\s+/);
+
+    if (line1.length < 11 || line2.length < 11) continue;
+
+    const date = line1[0];
+    const nums1 = line1.slice(1).map(Number);
+    const draw = line2[0];
+    const nums2 = line2.slice(1).map(Number);
+
+    results.push({
+      date,
+      draw,
+      numbers: nums1.concat(nums2)
+    });
+  }
+
+  index = 0;
+  render();
+}
+
+function calcStats() {
+  const freq = {}, drought = {};
+  for (let n = 1; n <= 80; n++) {
+    freq[n] = 0;
+    drought[n] = 0;
+  }
+
+  results.slice(0, WINDOW).forEach(r => {
+    r.numbers.forEach(n => freq[n]++);
+  });
+
+  for (let n = 1; n <= 80; n++) {
+    for (let i = 0; i < Math.min(results.length, WINDOW); i++) {
+      if (results[i].numbers.includes(n)) break;
+      drought[n]++;
+    }
+  }
+  return { freq, drought };
+}
+
+function render() {
+  if (!results.length) return;
+
+  const current = results[index];
+  const prevDraw = results[index + 1];
+  const prevNums = prevDraw ? prevDraw.numbers : [];
+
+  const { freq, drought } = calcStats();
+
+  document.getElementById('info').innerText =
+    `${current.date}\n${current.draw} (${index + 1}/${results.length})`;
+
+  const table = document.getElementById('board');
+  table.innerHTML = '';
+
+  let row;
+  for (let n = 1; n <= 80; n++) {
+    if ((n - 1) % 10 === 0) {
+      row = table.insertRow();
+      if ((n - 1) / 10 === 4) row.classList.add('divider-h');
+    }
+
+    const cell = row.insertCell();
+    cell.innerText = n;
+
+    if (n % 10 === 5) cell.classList.add('divider-v');
+
+    const isHit = current.numbers.includes(n);
+    if (isHit) cell.classList.add('hit');
+
+    if (!isHit && prevNums.includes(n)) cell.classList.add('prev');
+
+    if (freq[n] >= 6) cell.classList.add('hot3');
+    else if (freq[n] >= 4) cell.classList.add('hot2');
+    else if (freq[n] === 3) cell.classList.add('hot1');
+
+    if (!isHit) {
+      if (drought[n] >= 8) cell.classList.add('cold3');
+      else if (drought[n] >= 6) cell.classList.add('cold2');
+      else if (drought[n] >= 4) cell.classList.add('cold1');
+    }
+  }
+}
+
+function prev() {
+  if (index < results.length - 1) {
+    index++;
+    render();
+  }
+}
+
+function next() {
+  if (index > 0) {
+    index--;
+    render();
+  }
+}
+</script>
+
+</body>
+</html>
