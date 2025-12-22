@@ -12,33 +12,47 @@ async function main() {
 
     let newResults = [];
 
-    $(".board-item").each((i, el) => {
+    // Lấy tất cả các kỳ Keno trên trang
+    $(".board-game").each((i, el) => {
       const ky = $(el).find(".draw-number").text().trim();
       const time = $(el).find(".draw-time").text().trim();
       const numbers = [];
+
       $(el).find(".board-number span").each((j, num) => {
-        numbers.push(parseInt($(num).text().trim()));
+        const n = parseInt($(num).text().trim());
+        if (!isNaN(n)) numbers.push(n);
       });
-      newResults.push({ ky, time, numbers });
+
+      if (ky && numbers.length) {
+        newResults.push({ ky, time, numbers });
+      }
     });
 
-    // load dữ liệu cũ
-    let oldResults = [];
-    if (fs.existsSync("data/keno.json")) {
-      oldResults = JSON.parse(fs.readFileSync("data/keno.json"));
+    if (newResults.length === 0) {
+      console.log("⚠️ Không lấy được dữ liệu mới từ trang minhchinh.com");
+      return;
     }
 
-    // kết hợp + loại trùng
+    // Load dữ liệu cũ
+    let oldResults = [];
+    const dataPath = "data/keno.json";
+    if (fs.existsSync(dataPath)) {
+      oldResults = JSON.parse(fs.readFileSync(dataPath));
+    }
+
+    // Kết hợp + loại trùng
     const combined = [...newResults, ...oldResults].filter(
       (v, i, a) => a.findIndex(x => x.ky === v.ky) === i
     );
 
-    // giữ tối đa MAX_KY
+    // Giữ tối đa MAX_KY kỳ
     combined.splice(MAX_KY);
 
-    // ghi JSON
+    // Tạo folder nếu chưa có
     if (!fs.existsSync("data")) fs.mkdirSync("data");
-    fs.writeFileSync("data/keno.json", JSON.stringify(combined, null, 2));
+
+    // Ghi file JSON
+    fs.writeFileSync(dataPath, JSON.stringify(combined, null, 2));
 
     console.log("✅ Keno data updated! Kỳ mới nhất:", combined[0]?.ky);
   } catch (e) {
