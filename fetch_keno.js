@@ -2,7 +2,7 @@ const fs = require("fs");
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-const MAX_KY = 50;
+const MAX_KY = 50; // giữ tối đa 50 kỳ
 
 async function main() {
   try {
