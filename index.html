@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>KENO – Hot Cold</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{font-family:Arial;background:#fff;margin:0;padding:10px}
+.container{max-width:1200px;margin:auto}
+.header{text-align:center;font-size:24px;font-weight:bold}
+.sub{text-align:center;font-size:16px;margin:6px 0}
+.nav{display:flex;justify-content:space-between;margin:10px 0}
+.nav button{font-size:28px;padding:6px 18px;cursor:pointer}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+td{border:1px solid #bbb;text-align:center;padding:10px 0;font-size:22px}
+.bold-r{border-right:3px solid #000}
+.bold-b td{border-bottom:3px solid #000}
+.hit{background:#4caf50;color:#fff}
+.hot3{color:#e65100;font-weight:bold}
+.hot2{color:#ff9800;font-weight:bold}
+.hot1{color:#ffcc80;font-weight:bold}
+.cold3{color:#0d47a1;font-weight:bold}
+.cold2{color:#1e88e5;font-weight:bold}
+.cold1{color:#90caf9}
+.underline{border-bottom:3px solid #000}
+.note{margin-top:14px;font-size:15px;line-height:1.6}
+@media(max-width:768px){td{font-size:18px}}
+@media(min-width:1200px){td{font-size:26px}}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">KENO – THỐNG KÊ 10 KỲ</div>
+<div class="sub" id="info"></div>
+
+<div class="nav">
+<button onclick="newer()">&#8592;</button>
+<button onclick="older()">&#8594;</button>
+</div>
+
+<table id="board"></table>
+
+<div class="note">
+<b>Giải thích cho khách xem:</b><br><br>
+
+🟢 <b>Kết quả kỳ đang xem</b>: nền xanh lá<br><br>
+
+🔥 <b>Hot</b> – xuất hiện trong <b>10 kỳ gần nhất</b>:<br>
+• 6–7 lần: cam đậm<br>
+• 4–5 lần: cam vừa<br>
+• 3 lần: cam nhạt<br><br>
+
+❄ <b>Cold (gan)</b> – không xuất hiện liên tiếp:<br>
+• ≥ 8 kỳ: xanh đậm<br>
+• 6–7 kỳ: xanh vừa<br>
+• 4–5 kỳ: xanh nhạt<br><br>
+
+<b>Lưu ý:</b> Thống kê chỉ mang tính chất tham khảo.
+</div>
+
+<textarea id="raw" style="display:none;">
+22/12/2025	02 06 07 12 14 16 20 28 32 38
+#0264004	41 45 52 53 54 60 68 73 78 79
+22/12/2025	01 05 08 11 13 17 19 25 30 32
+#0264003	33 50 51 52 55 58 59 62 63 76
+22/12/2025	02 03 06 08 12 16 20 22 25 31
+#0264002	38 41 51 54 59 63 65 66 70 75
+22/12/2025	01 02 03 11 15 18 23 25 31 41
+#0264001	44 47 50 62 74 75 76 78 79 80
+22/12/2025	05 08 20 23 24 26 29 30 36 38
+#0264000	43 46 54 67 68 71 72 73 76 78
+22/12/2025	01 05 20 26 27 28 29 31 33 36
+#0263999	38 39 41 42 52 54 59 68 72 75
+22/12/2025	02 03 06 07 08 10 13 18 24 27
+#0263998	36 37 40 44 47 53 54 59 62 75
+22/12/2025	03 05 14 18 19 23 27 28 34 36
+#0263997	38 40 45 51 57 59 61 64 66 77
+22/12/2025	01 02 07 09 13 14 20 24 27 37
+#0263996	48 49 51 53 54 68 71 73 77 80
+22/12/2025	02 06 07 13 16 17 20 23 28 31
+#0263995	33 52 56 64 69 71 73 74 77 78
+22/12/2025	02 05 07 10 24 27 28 31 32 41
+#0263994	44 53 54 58 64 67 69 75 76 79
+22/12/2025	01 02 04 09 13 14 20 27 31 39
+#0263993	43 45 54 56 57 60 62 78 79 80
+22/12/2025	02 04 08 14 19 21 23 25 26 27
+#0263992	34 46 50 58 59 60 68 73 76 78
+22/12/2025	02 06 13 23 34 35 36 38 39 41
+#0263991	44 45 46 57 62 64 65 75 76 79
+22/12/2025	03 09 10 11 13 26 28 34 36 37
+#0263990	40 42 45 47 51 60 69 71 72 76
+22/12/2025	08 12 15 18 23 27 35 42 43 46
+#0263989	49 60 63 66 72 73 74 75 77 80
+22/12/2025	01 11 20 25 32 34 37 45 48 52
+#0263988	53 56 60 62 63 65 69 72 78 80
+22/12/2025	01 03 06 12 14 23 25 27 31 32
+#0263987	33 37 46 47 48 52 56 68 73 79
+22/12/2025	04 09 10 13 15 17 22 27 31 35
+#0263986	37 43 61 63 64 65 69 74 78 79
+22/12/2025	01 02 08 13 16 21 24 26 28 29
+#0263985	32 36 38 39 41 53 56 66 69 73
+22/12/2025	08 09 12 15 16 18 22 24 30 36
+#0263984	45 47 48 51 57 59 66 70 72 78
+22/12/2025	05 16 21 24 26 30 31 33 34 35
+#0263983	41 46 49 50 62 63 68 69 77 79
+22/12/2025	01 02 05 07 10 11 19 22 24 31
+#0263982	34 44 51 58 62 69 70 72 73 78
+22/12/2025	03 08 09 10 11 19 22 24 26 40
+#0263981	45 48 49 56 58 60 61 69 71 75
+22/12/2025	01 09 13 17 23 25 30 35 44 47
+#0263980	50 52 57 58 60 63 64 65 68 77
+22/12/2025	03 06 09 13 14 23 26 38 39 43
+#0263979	45 49 52 57 65 66 67 68 70 76
+22/12/2025	02 07 10 13 15 16 30 31 35 40
+#0263978	41 50 51 60 64 68 69 75 79 80
+</textarea>
+
+</div>
+
+<script>
+let results=[];
+let index=0;
+const WINDOW=10;
+
+function parseData(){
+  let lines=document.getElementById("raw").value
+    .replace(/\u00A0/g," ")
+    .trim()
+    .split(/\n+/);
+
+  let out=[];
+  for(let i=0;i<lines.length;i+=2){
+    if(!lines[i+1]) break;
+
+    let line1=lines[i];
+    let line2=lines[i+1];
+
+    let date=line1.match(/\d{2}\/\d{2}\/\d{4}/)?.[0]||"";
+    let draw=line2.match(/#\d+/)?.[0]||"";
+
+    let nums1=line1.replace(date,"").trim().split(/\s+/).map(Number);
+    let nums2=line2.replace(draw,"").trim().split(/\s+/).map(Number);
+
+    let nums=[...nums1,...nums2].filter(n=>n>=1 && n<=80);
+
+    if(nums.length===20){
+      out.push({date,draw,nums});
+    }
+  }
+  return out;
+}
+
+function calcStats(){
+  let freq=Array(81).fill(0);
+  let drought=Array(81).fill(0);
+
+  results.slice(index,index+WINDOW)
+    .forEach(r=>r.nums.forEach(n=>freq[n]++));
+
+  for(let n=1;n<=80;n++){
+    for(let i=index;i<Math.min(results.length,index+WINDOW);i++){
+      if(results[i].nums.includes(n)) break;
+      drought[n]++;
+    }
+  }
+  return {freq,drought};
+}
+
+function render(){
+  if(!results.length) return;
+
+  let cur=results[index];
+  let prev=index+1<results.length?results[index+1].nums:[];
+  let {freq,drought}=calcStats();
+
+  document.getElementById("info").innerText=
+    `Ngày ${cur.date} – Kỳ ${cur.draw}`;
+
+  let tb=document.getElementById("board");
+  tb.innerHTML="";
+  let n=1;
+
+  for(let r=0;r<8;r++){
+    let tr=document.createElement("tr");
+    if(r===3) tr.classList.add("bold-b");
+
+    for(let c=0;c<10;c++){
+      let td=document.createElement("td");
+      if(c===4) td.classList.add("bold-r");
+      td.textContent=n.toString().padStart(2,"0");
+
+      if(cur.nums.includes(n)) td.classList.add("hit");
+
+      if(freq[n]>=6) td.classList.add("hot3");
+      else if(freq[n]>=4) td.classList.add("hot2");
+      else if(freq[n]===3) td.classList.add("hot1");
+
+      if(drought[n]>=8) td.classList.add("cold3");
+      else if(drought[n]>=6) td.classList.add("cold2");
+      else if(drought[n]>=4) td.classList.add("cold1");
+
+      if(prev.includes(n)) td.classList.add("underline");
+
+      tr.appendChild(td);
+      n++;
+    }
+    tb.appendChild(tr);
+  }
+}
+
+function older(){if(index+1<results.length){index++;render();}}
+function newer(){if(index>0){index--;render();}}
+
+results=parseData();
+render();
+</script>
+
+</body>
+</html>
