@@ -1,0 +1,10 @@
+{
+  "name": "keno-web",
+  "version": "1.0.0",
+  "description": "Auto fetch Keno data",
+  "main": "fetch_keno.js",
+  "dependencies": {
+    "axios": "^1.6.5",
+    "cheerio": "^1.0.0-rc.12"
+  }
+}
