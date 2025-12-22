@@ -5,8 +5,13 @@
 <title>Keno – Thống kê Hot / Cold</title>
 
 <style>
-:root{ --cell:70px; }
+:root{
+  --cell:70px;
+  --font-btn:18px;
+  --font-cell:22px;
+}
 
+/* body */
 body{
   font-family: Arial, sans-serif;
   background:#fff;
@@ -16,13 +21,16 @@ body{
 
 h2{ margin-bottom:10px; }
 
+/* buttons */
 button{
-  font-size:18px;
-  padding:6px 16px;
+  font-size:var(--font-btn);
+  padding:8px 18px;
   margin:6px;
   cursor:pointer;
+  border-radius:6px;
 }
 
+/* info */
 #info{
   font-size:22px;
   font-weight:bold;
@@ -30,6 +38,7 @@ button{
   white-space:pre-line;
 }
 
+/* table */
 table{
   margin:0 auto;
   border-collapse:collapse;
@@ -39,7 +48,7 @@ td{
   width:var(--cell);
   height:var(--cell);
   border:1px solid #aaa;
-  font-size:22px;
+  font-size:var(--font-cell);
   text-align:center;
   vertical-align:middle;
   position: relative;
@@ -50,10 +59,7 @@ td:nth-child(5){ border-right:3px solid #000; }
 tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
 /* hit – số trúng kỳ hiện tại */
-.hit{
-  background:#4caf50;
-  color:#fff;
-}
+.hit{ background:#4caf50; color:#fff; }
 
 /* gạch chân kỳ trước */
 .prev-hit{
@@ -81,9 +87,37 @@ tr:nth-child(4) td{ border-bottom:3px solid #000; }
   text-align:left;
 }
 
+/* nav */
+.nav{ margin-bottom:10px; }
+
 /* responsive */
-@media (max-width:900px){ :root{ --cell:55px; } }
-@media (max-width:600px){ :root{ --cell:42px; } #info{ font-size:18px; } }
+@media (max-width:600px){
+  :root{
+    --cell:45px;
+    --font-btn:22px;
+    --font-cell:16px;
+  }
+  #info{ font-size:18px; }
+  button{ padding:10px 20px; }
+}
+
+@media (min-width:1200px){
+  :root{
+    --cell:90px;
+    --font-btn:24px;
+    --font-cell:28px;
+  }
+  #info{ font-size:28px; }
+}
+
+@media (min-width:1800px){ /* TV */
+  :root{
+    --cell:120px;
+    --font-btn:32px;
+    --font-cell:36px;
+  }
+  #info{ font-size:36px; }
+}
 </style>
 </head>
 
@@ -93,10 +127,10 @@ tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
 <div id="info"></div>
 
-<!-- Nút tua nằm phía trên bảng -->
+<!-- Nút tua phía trên bảng -->
 <div class="nav">
-<button onclick="newer()">◀</button>
-<button onclick="older()">▶</button>
+  <button onclick="newer()">◀</button>
+  <button onclick="older()">▶</button>
 </div>
 
 <table id="board"></table>
@@ -120,36 +154,18 @@ tr:nth-child(4) td{ border-bottom:3px solid #000; }
 <i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
 </div>
 
-<!-- textarea chứa dữ liệu sẵn để load tự động -->
+<!-- textarea chứa dữ liệu -->
 <textarea id="raw" style="display:none;">
-22/12/2025	05 12 17 21 22 26 29 30 32 33
-#0264023	37 38 41 48 49 52 54 64 77 78
-22/12/2025	05 11 14 20 29 35 40 45 55 57
-#0264022	60 62 63 64 65 66 67 72 78 79
-22/12/2025	01 11 12 16 21 25 26 29 30 32
-#0264021	46 47 50 56 57 62 64 75 76 79
-22/12/2025	01 02 12 15 16 20 26 27 36 39
-#0264020	40 44 45 48 56 58 59 62 71 74
-22/12/2025	01 07 14 16 26 31 33 38 44 52
-#0264019	55 56 61 62 63 70 74 77 78 80
-22/12/2025	01 03 10 20 23 24 32 36 38 43
-#0264018	44 52 53 58 59 62 67 71 73 75
-22/12/2025	02 04 07 21 22 24 25 32 35 42
-#0264017	43 47 48 57 58 60 61 69 77 80
-22/12/2025	03 06 07 14 16 29 36 39 41 47
-#0264016	52 53 61 64 68 69 71 72 73 77
-22/12/2025	03 05 10 17 18 19 22 31 33 40
-#0264015	41 43 56 62 64 66 67 69 71 79
-22/12/2025	01 06 10 11 18 20 25 30 31 32
-#0264014	38 50 51 55 56 59 66 70 71 79
-22/12/2025	01 03 04 15 17 18 20 21 25 33
-#0264013	36 38 41 44 46 50 57 60 67 76
-22/12/2025	01 04 05 06 07 12 13 20 25 28
-#0264012	33 34 35 37 41 48 52 63 66 67
-22/12/2025	05 12 16 17 18 34 35 38 41 43
-#0264011	47 52 54 55 65 66 68 70 74 76
-22/12/2025	09 11 13 14 15 16 18 19 21 22
-#0264010	33 35 36 41 45 47 54 66 67 79
+22/12/2025	02 06 07 12 14 16 20 28 32 38
+#0264004	41 45 52 53 54 60 68 73 78 79
+22/12/2025	01 05 08 11 13 17 19 25 30 32
+#0264003	33 50 51 52 55 58 59 62 63 76
+22/12/2025	02 03 06 08 12 16 20 22 25 31
+#0264002	38 41 51 54 59 63 65 66 70 75
+22/12/2025	01 02 03 11 15 18 23 25 31 41
+#0264001	44 47 50 62 74 75 76 78 79 80
+22/12/2025	05 08 20 23 24 26 29 30 36 38
+#0264000	43 46 54 67 68 71 72 73 76 78
 </textarea>
 
 <script>
