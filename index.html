@@ -6,7 +6,8 @@
 
 <style>
 :root{
-  --cell:70px;
+  --cell-width:75px;
+  --cell-height:55px;
   --font-btn:18px;
   --font-cell:22px;
 }
@@ -15,8 +16,9 @@
 body{
   font-family: Arial, sans-serif;
   background:#fff;
-  text-align:center;
+  margin:0;
   padding:15px;
+  text-align:center;
 }
 
 h2{ margin-bottom:10px; }
@@ -34,19 +36,22 @@ button{
 #info{
   font-size:22px;
   font-weight:bold;
-  margin:15px 0;
+  margin:10px 0;
   white-space:pre-line;
 }
 
+/* nav */
+.nav{ margin-bottom:10px; }
+
 /* table */
-table{
+#board{
   margin:0 auto;
   border-collapse:collapse;
 }
 
-td{
-  width:var(--cell);
-  height:var(--cell);
+#board td{
+  width:var(--cell-width);
+  height:var(--cell-height);
   border:1px solid #aaa;
   font-size:var(--font-cell);
   text-align:center;
@@ -55,8 +60,8 @@ td{
 }
 
 /* chia bảng 4 phần */
-td:nth-child(5){ border-right:3px solid #000; }
-tr:nth-child(4) td{ border-bottom:3px solid #000; }
+#board td:nth-child(5){ border-right:3px solid #000; }
+#board tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
 /* hit – số trúng kỳ hiện tại */
 .hit{ background:#4caf50; color:#fff; }
@@ -78,45 +83,47 @@ tr:nth-child(4) td{ border-bottom:3px solid #000; }
 .cold2{ color:#1e88e5; font-weight:bold; }
 .cold3{ color:#0d47a1; font-weight:bold; }
 
-/* legend */
-.legend{
-  max-width:1100px;
-  margin:25px auto;
+/* note / legend */
+.note{
+  max-width:1200px;
+  margin:20px auto;
   font-size:16px;
   line-height:1.6;
   text-align:left;
+  padding:0 10px;
 }
 
-/* nav */
-.nav{ margin-bottom:10px; }
-
 /* responsive */
-@media (max-width:600px){
+@media (max-width:600px){ /* điện thoại */
   :root{
-    --cell:45px;
+    --cell-width:50px;
+    --cell-height:45px;
     --font-btn:22px;
     --font-cell:16px;
   }
   #info{ font-size:18px; }
-  button{ padding:10px 20px; }
+  button{ padding:10px 22px; }
+  .note{ font-size:14px; text-align:left; }
 }
 
-@media (min-width:1200px){
+@media (min-width:1200px){ /* máy tính */
   :root{
-    --cell:90px;
-    --font-btn:24px;
-    --font-cell:28px;
+    --cell-width:75px;
+    --cell-height:55px;
+    --font-btn:20px;
+    --font-cell:22px;
   }
-  #info{ font-size:28px; }
 }
 
 @media (min-width:1800px){ /* TV */
   :root{
-    --cell:120px;
-    --font-btn:32px;
-    --font-cell:36px;
+    --cell-width:90px;
+    --cell-height:60px;
+    --font-btn:28px;
+    --font-cell:30px;
   }
-  #info{ font-size:36px; }
+  #info{ font-size:32px; }
+  .note{ font-size:20px; }
 }
 </style>
 </head>
@@ -127,30 +134,28 @@ tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
 <div id="info"></div>
 
-<!-- Nút tua phía trên bảng -->
+<!-- Nút tua trên bảng -->
 <div class="nav">
   <button onclick="newer()">◀</button>
   <button onclick="older()">▶</button>
 </div>
 
+<!-- bảng số -->
 <table id="board"></table>
 
-<div class="legend">
+<!-- note / giải thích -->
+<div class="note">
 <b>Giải thích cho khách xem:</b><br><br>
-
 🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
 ▬ <b>Gạch chân</b>: số trúng kỳ liền trước<br><br>
-
-🔥 <b>HOT</b> – xuất hiện trong <b>10 kỳ gần nhất</b>:<br>
+🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
 • 6–10 lần: cam đậm<br>
 • 4–5 lần: cam<br>
 • 3 lần: cam nhạt<br><br>
-
 ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
 • ≥8 kỳ gan: xanh đậm<br>
 • 6–7 kỳ gan: xanh<br>
 • 4–5 kỳ gan: xanh nhạt<br><br>
-
 <i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
 </div>
 
@@ -160,12 +165,6 @@ tr:nth-child(4) td{ border-bottom:3px solid #000; }
 #0264004	41 45 52 53 54 60 68 73 78 79
 22/12/2025	01 05 08 11 13 17 19 25 30 32
 #0264003	33 50 51 52 55 58 59 62 63 76
-22/12/2025	02 03 06 08 12 16 20 22 25 31
-#0264002	38 41 51 54 59 63 65 66 70 75
-22/12/2025	01 02 03 11 15 18 23 25 31 41
-#0264001	44 47 50 62 74 75 76 78 79 80
-22/12/2025	05 08 20 23 24 26 29 30 36 38
-#0264000	43 46 54 67 68 71 72 73 76 78
 </textarea>
 
 <script>
@@ -234,11 +233,31 @@ function render(){
   }
 }
 
+/* auto resize bảng */
+function autoResize(){
+  const vw=window.innerWidth;
+  const vh=window.innerHeight;
+  const table=document.getElementById('board');
+  if(vw<600){
+    document.documentElement.style.setProperty('--cell-width','50px');
+    document.documentElement.style.setProperty('--cell-height','45px');
+  } else if(vw>=1800){
+    document.documentElement.style.setProperty('--cell-width','90px');
+    document.documentElement.style.setProperty('--cell-height','60px');
+  } else {
+    document.documentElement.style.setProperty('--cell-width','75px');
+    document.documentElement.style.setProperty('--cell-height','55px');
+  }
+}
+
+/* nút tua */
 function older(){if(index+1<results.length){index++;render();}}
 function newer(){if(index>0){index--;render();}}
 
 results=parseData();
+autoResize();
 render();
+window.addEventListener('resize',()=>{ autoResize(); });
 </script>
 
 </body>
