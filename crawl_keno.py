@@ -1,64 +1,31 @@
-import os
+import requests
 import json
+import os
 from datetime import datetime
 
-# ======================
-# BẮT BUỘC TẠO FILE TRƯỚC
-# ======================
-os.makedirs("data", exist_ok=True)
-OUTPUT_FILE = "data/keno.json"
+URL = "https://appapi.xosodaiphat.com/api/Vietlott/GetHomeData"
 
-# GHI FILE RỖNG TRƯỚC (CHỐNG FAIL)
-empty_output = {
-    "source": "init",
-    "updated_at": datetime.utcnow().isoformat(),
-    "total": 0,
-    "data": []
-}
+def main():
+    print("Fetching Keno data...")
 
-with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-    json.dump(empty_output, f, ensure_ascii=False, indent=2)
+    res = requests.get(URL, timeout=15)
+    res.raise_for_status()
 
-print("Initialized empty keno.json")
+    data = res.json()
 
-# ======================
-# PHẦN CRAWL (CÓ THÌ GHI ĐÈ)
-# ======================
-try:
-    import requests
-
-    URL = "https://appapi.xosodaiphat.com/api/Vietlott/GetKenoResult"
-    resp = requests.get(URL, timeout=15)
-    resp.raise_for_status()
-    raw = resp.json()
-
-    results = []
-
-    for item in raw:
-        nums = []
-        for i in range(1, 21):
-            n = item.get(f"Num{i}")
-            if n is not None:
-                nums.append(int(n))
-
-        if len(nums) == 20:
-            results.append({
-                "draw": item.get("DrawCode"),
-                "date": item.get("DrawDate"),
-                "numbers": nums
-            })
+    # Tạo thư mục data nếu chưa có
+    os.makedirs("data", exist_ok=True)
 
     output = {
         "source": URL,
-        "updated_at": datetime.utcnow().isoformat(),
-        "total": len(results),
-        "data": results
+        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "raw": data
     }
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+    with open("data/keno.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print("Saved", len(results), "Keno records")
+    print("Saved data/keno.json successfully")
 
-except Exception as e:
-    print("Crawl failed, keep empty file:", e)
+if __name__ == "__main__":
+    main()
