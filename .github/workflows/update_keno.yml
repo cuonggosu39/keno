@@ -22,10 +22,10 @@ jobs:
       - name: Crawl Keno
         run: python crawl_keno.py
 
-      - name: Commit data
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add keno.json
-          git commit -m "auto update keno" || echo "No changes"
-          git push
+- name: Commit data
+  run: |
+    git config user.name "github-actions[bot]"
+    git config user.email "github-actions[bot]@users.noreply.github.com"
+    git add data
+    git commit -m "Update Keno data" || echo "No changes"
+    git push
