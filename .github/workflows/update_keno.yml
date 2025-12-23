@@ -2,34 +2,34 @@ name: Update Keno Data
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # chạy mỗi 5 phút
-  workflow_dispatch:        # cho phép chạy thủ công
+    - cron: '*/2 * * * *' # chạy mỗi 2 phút, gần sát 8 phút xổ 1 lần
+  workflow_dispatch: # trigger thủ công nếu muốn
 
 jobs:
-  fetch:
+  fetch_keno:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
 
-      - name: Install dependencies
-        run: npm install axios cheerio
+    - name: Install dependencies
+      run: |
+        pip install requests pandas
 
-      - name: Run fetch Keno
-        run: node fetch_keno.js
+    - name: Fetch latest Keno data
+      run: |
+        python fetch_keno.py
 
-      - name: Commit & Push
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add data/keno.json
-          git commit -m "Auto update Keno data" || echo "Nothing to commit"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Commit & Push updated data if changed
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add data/keno.json
+        git diff --cached --quiet || git commit -m "Update Keno data"
+        git push
