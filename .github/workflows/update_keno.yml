@@ -2,32 +2,30 @@ name: Update Keno Data
 
 on:
   schedule:
-    - cron: '*/2 * * * *' # chạy mỗi 2 phút, gần với lịch Keno 8 phút/xổ
-  workflow_dispatch: # trigger thủ công
+    - cron: "*/5 * * * *"   # mỗi 5 phút
+  workflow_dispatch:
 
 jobs:
-  fetch_keno:
+  crawl:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.11
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-    - name: Install dependencies
-      run: pip install requests
+      - name: Install deps
+        run: pip install requests beautifulsoup4
 
-    - name: Fetch latest Keno data
-      run: python fetch_keno.py
+      - name: Crawl Keno
+        run: python crawl_keno.py
 
-    - name: Commit & Push updated data if changed
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add data/keno.json
-        git diff --cached --quiet || git commit -m "Update Keno data"
-        git push
+      - name: Commit data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add keno.json
+          git commit -m "auto update keno" || echo "No changes"
+          git push
