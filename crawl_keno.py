@@ -1,31 +1,17 @@
-import requests
-import json
 import os
+import json
 from datetime import datetime
 
-URL = "https://appapi.xosodaiphat.com/api/Vietlott/GetHomeData"
+print("TEST: crawl_keno.py is running")
 
-def main():
-    print("Fetching Keno data...")
+os.makedirs("data", exist_ok=True)
 
-    res = requests.get(URL, timeout=15)
-    res.raise_for_status()
+data = {
+    "status": "ok",
+    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+}
 
-    data = res.json()
+with open("data/keno.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2)
 
-    # Tạo thư mục data nếu chưa có
-    os.makedirs("data", exist_ok=True)
-
-    output = {
-        "source": URL,
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "raw": data
-    }
-
-    with open("data/keno.json", "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-
-    print("Saved data/keno.json successfully")
-
-if __name__ == "__main__":
-    main()
+print("TEST: data/keno.json created")
