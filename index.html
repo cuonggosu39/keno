@@ -83,7 +83,7 @@ button{
 .cold2{ color:#1e88e5; font-weight:bold; }
 .cold3{ color:#0d47a1; font-weight:bold; }
 
-/* note / legend */
+/* note / legend – GIỮ GỐC */
 .note{
   max-width:1200px;
   margin:20px auto;
@@ -93,8 +93,33 @@ button{
   padding:0 10px;
 }
 
+/* ===== CHỈ THÊM GRID LAYOUT ===== */
+.note-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap:12px;
+}
+
+.note-grid > div{
+  background:#fafafa;
+  padding:10px 12px;
+  border-radius:6px;
+}
+
+.note-title{
+  grid-column:1 / -1;
+  background:none;
+  padding:0;
+}
+
+.note-footer{
+  grid-column:1 / -1;
+  text-align:center;
+  color:#555;
+}
+
 /* responsive */
-@media (max-width:600px){ /* điện thoại */
+@media (max-width:600px){
   :root{
     --cell-width:50px;
     --cell-height:45px;
@@ -103,10 +128,10 @@ button{
   }
   #info{ font-size:18px; }
   button{ padding:10px 22px; }
-  .note{ font-size:14px; text-align:left; }
+  .note{ font-size:14px; }
 }
 
-@media (min-width:1200px){ /* máy tính */
+@media (min-width:1200px){
   :root{
     --cell-width:75px;
     --cell-height:55px;
@@ -115,7 +140,7 @@ button{
   }
 }
 
-@media (min-width:1800px){ /* TV */
+@media (min-width:1800px){
   :root{
     --cell-width:90px;
     --cell-height:60px;
@@ -134,86 +159,66 @@ button{
 
 <div id="info"></div>
 
-<!-- Nút tua trên bảng -->
 <div class="nav">
   <button onclick="newer()">◀</button>
   <button onclick="older()">▶</button>
 </div>
 
-<!-- bảng số -->
 <table id="board"></table>
 
-<!-- note / giải thích -->
-<div class="note">
-<b>Giải thích cho khách xem:</b><br><br>
-🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
-▬ <b>Gạch chân</b>: số trúng kỳ liền trước<br><br>
-🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
-• 6–10 lần: cam đậm<br>
-• 4–5 lần: cam<br>
-• 3 lần: cam nhạt<br><br>
-❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
-• ≥8 kỳ gan: xanh đậm<br>
-• 6–7 kỳ gan: xanh<br>
-• 4–5 kỳ gan: xanh nhạt<br><br>
-<i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
+<!-- note / giải thích – CHỈ ĐỔI LAYOUT -->
+<div class="note note-grid">
+  <div class="note-title"><b>Giải thích cho khách xem:</b></div>
+
+  <div>
+    🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
+    ▬ <b>Gạch chân</b>: số trúng kỳ liền trước
+  </div>
+
+  <div>
+    🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
+    • 6–10 lần: cam đậm<br>
+    • 4–5 lần: cam<br>
+    • 3 lần: cam nhạt
+  </div>
+
+  <div>
+    ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
+    • ≥8 kỳ gan: xanh đậm<br>
+    • 6–7 kỳ gan: xanh<br>
+    • 4–5 kỳ gan: xanh nhạt
+  </div>
+
+  <div class="note-footer">
+    <i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
+  </div>
 </div>
 
-<!-- textarea chứa dữ liệu -->
 <textarea id="raw" style="display:none;">
-23/12/2025	01 06 10 14 16 20 23 25 30 33
-#0264139	36 41 44 50 61 62 63 65 68 75
-23/12/2025	01 03 07 14 15 20 28 29 33 35
-#0264138	38 45 51 54 59 62 68 73 76 80
-23/12/2025	07 08 11 12 15 16 18 20 27 30
-#0264137	31 37 47 56 60 61 62 64 72 79
-23/12/2025	02 04 06 10 18 19 20 21 28 29
-#0264136	37 40 43 50 52 53 59 63 65 67
-23/12/2025	04 07 12 17 26 30 38 39 40 41
-#0264135	44 47 49 51 52 56 57 61 70 71
-23/12/2025	07 08 12 17 19 28 29 31 33 34
-#0264134	37 45 49 54 60 67 70 76 77 79
-23/12/2025	02 03 05 07 11 15 19 20 25 32
-#0264133	41 47 51 52 54 55 58 62 72 73
-23/12/2025	02 09 10 16 18 19 22 24 31 32
-#0264132	33 41 43 47 48 55 62 69 71 73
-23/12/2025	03 06 08 12 14 15 21 24 31 32
-#0264131	33 34 43 45 47 52 66 70 74 75
-23/12/2025	04 12 14 17 20 21 22 28 32 40
-#0264130	42 43 49 59 69 72 76 77 78 79
-23/12/2025	03 04 05 08 10 14 15 20 36 38
-#0264129	39 40 45 49 57 62 63 74 75 79
-23/12/2025	02 03 05 06 07 08 09 25 28 41
-#0264128	42 48 50 58 60 63 64 66 78 80
-23/12/2025	01 05 07 08 09 13 16 21 28 29
-#0264127	33 34 40 46 49 50 56 58 64 65
-23/12/2025	10 18 20 21 27 29 33 34 37 38
-#0264126	45 46 48 51 53 55 62 70 72 77
-23/12/2025	04 05 07 10 16 19 23 25 26 28
-#0264125	32 38 41 45 48 49 51 63 74 75
-23/12/2025	02 03 07 08 12 13 23 26 34 41
-#0264124	42 43 45 47 49 52 63 67 71 76
-23/12/2025	01 02 04 10 14 18 21 24 27 29
-#0264123	32 33 37 45 48 54 57 61 69 79
-23/12/2025	03 04 06 08 12 13 17 18 21 35
-#0264122	37 51 54 63 69 70 74 75 76 80
-23/12/2025	01 04 10 17 19 21 25 45 47 48
-#0264121	49 53 56 57 63 68 71 76 77 78
-23/12/2025	02 03 05 11 25 27 28 34 35 40
-#0264120	44 45 50 51 55 61 69 70 74 79
-23/12/2025	06 07 13 16 20 26 29 31 34 36
-#0264119	38 40 47 48 53 54 58 62 67 69
-23/12/2025	02 03 08 19 20 21 37 40 43 44
-#0264118	45 48 52 59 61 63 68 70 74 76
-23/12/2025	03 15 16 17 18 19 22 38 39 40
-#0264117	42 52 56 57 58 62 68 69 75 79
-23/12/2025	04 07 10 14 18 24 25 36 38 41
-#0264116	47 48 51 62 69 72 74 75 77 80
-23/12/2025	03 07 08 17 25 26 27 30 39 44
-#0264115	55 61 63 64 67 69 73 74 77 79
-23/12/2025	01 02 04 05 09 10 12 20 28 29
-#0264114	32 35 40 51 55 61 69 73 77 80
+22/12/2025	01 03 04 06 10 18 24 27 33 34
+#0264053	38 42 44 45 47 49 50 58 67 76
+22/12/2025	04 10 12 13 15 17 19 25 31 34
+#0264052	37 39 46 54 59 63 70 73 78 79
+22/12/2025	05 10 23 29 30 35 36 38 44 45
+#0264051	49 59 60 61 62 63 64 77 78 79
+22/12/2025	07 08 10 11 16 17 21 27 35 36
+#0264050	37 38 41 49 60 62 63 69 71 78
+22/12/2025	03 05 12 14 17 20 25 33 41 43
+#0264049	48 49 50 51 52 53 65 67 68 69
+22/12/2025	06 08 12 14 21 25 26 35 40 41
+#0264048	44 45 47 48 50 53 54 55 59 69
+22/12/2025	01 09 14 23 24 25 26 30 38 46
+#0264047	55 56 57 60 61 62 63 64 78 80
+22/12/2025	02 07 09 10 11 17 19 21 24 25
+#0264046	31 33 34 37 38 61 65 69 73 75
+22/12/2025	01 02 05 06 07 09 16 23 33 35
+#0264045	40 42 46 47 54 59 65 66 76 79
+22/12/2025	02 11 17 18 20 21 25 38 44 45
+#0264044	48 60 63 66 67 68 69 72 78 80
+22/12/2025	01 03 05 07 12 23 24 25 27 29
+#0264043	30 32 33 34 35 36 46 59 60 77
 </textarea>
+
 <script>
 let results=[];
 let index=0;
@@ -260,10 +265,8 @@ function render(){
   let n=1;
   for(let r=0;r<8;r++){
     let tr=document.createElement("tr");
-    if(r===3) tr.classList.add("bold-b");
     for(let c=0;c<10;c++){
       let td=document.createElement("td");
-      if(c===4) td.classList.add("bold-r");
       td.textContent=n.toString().padStart(2,"0");
       if(cur.nums.includes(n)) td.classList.add("hit");
       if(prev.includes(n)) td.classList.add("prev-hit");
@@ -283,8 +286,6 @@ function render(){
 /* auto resize bảng */
 function autoResize(){
   const vw=window.innerWidth;
-  const vh=window.innerHeight;
-  const table=document.getElementById('board');
   if(vw<600){
     document.documentElement.style.setProperty('--cell-width','50px');
     document.documentElement.style.setProperty('--cell-height','45px');
@@ -297,18 +298,14 @@ function autoResize(){
   }
 }
 
-/* nút tua */
 function older(){if(index+1<results.length){index++;render();}}
 function newer(){if(index>0){index--;render();}}
 
 results=parseData();
 autoResize();
 render();
-window.addEventListener('resize',()=>{ autoResize(); });
+window.addEventListener('resize',autoResize);
 </script>
 
 </body>
 </html>
-
-
-
