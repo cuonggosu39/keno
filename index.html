@@ -115,14 +115,33 @@ button{
 
 <table id="board"></table>
 
+<!-- note / giải thích – CHỈ ĐỔI LAYOUT -->
 <div class="note note-grid">
   <div class="note-title"><b>Giải thích cho khách xem:</b></div>
-  <div>🟢 <b>Nền xanh</b>: số trúng kỳ đang xem<br>▬ <b>Gạch chân</b>: kỳ liền trước</div>
-  <div>🔥 <b>HOT</b>: xuất hiện nhiều trong 10 kỳ</div>
-  <div>❄ <b>COLD</b>: số gan</div>
-  <div class="note-footer"><i>Chỉ mang tính tham khảo</i></div>
-</div>
 
+  <div>
+    🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
+    ▬ <b>Gạch chân</b>: số trúng kỳ liền trước
+  </div>
+
+  <div>
+    🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
+    • 6–10 lần: cam đậm<br>
+    • 4–5 lần: cam<br>
+    • 3 lần: cam nhạt
+  </div>
+
+  <div>
+    ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
+    • ≥8 kỳ gan: xanh đậm<br>
+    • 6–7 kỳ gan: xanh<br>
+    • 4–5 kỳ gan: xanh nhạt
+  </div>
+
+  <div class="note-footer">
+    <i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
+  </div>
+</div>
 <script>
 let results=[];
 let index=0;
@@ -221,5 +240,6 @@ loadKenoData();
 
 </body>
 </html>
+
 
 
