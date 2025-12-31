@@ -1,46 +1,50 @@
-name: Auto Fetch Keno (Stable)
+name: Fetch Keno Data
 
 on:
   schedule:
     - cron: "*/1 * * * *"
   workflow_dispatch:
 
-concurrency:
-  group: keno
-  cancel-in-progress: true
-
 jobs:
   fetch:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          clean: true
-
-      - name: Reset to remote
-        run: |
-          git fetch origin
-          git reset --hard origin/main
+      - uses: actions/checkout@v4
 
       - name: Fetch API
         run: |
           mkdir -p data
           curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1" > data/latest.json
 
+      - name: Update history
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+
+          const latest = JSON.parse(fs.readFileSync('data/latest.json','utf8'));
+          const items = latest.data.items;
+
+          let history = [];
+          if (fs.existsSync('data/history.json')) {
+            history = JSON.parse(fs.readFileSync('data/history.json','utf8'));
+          }
+
+          const existing = new Set(history.map(x => x.drawCode));
+          items.reverse().forEach(it => {
+            if (!existing.has(it.drawCode)) {
+              history.push(it);
+            }
+          });
+
+          fs.writeFileSync('data/history.json', JSON.stringify(history, null, 2));
+          EOF
+
       - name: Commit & Push
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git add data/latest.json
-
-          if git diff --cached --quiet; then
-            echo "No new draw"
-            exit 0
-          fi
-
-          git commit -m "Auto update keno"
-          git push --force
+          git add data
+          git commit -m "Update keno data" || exit 0
+          git push
