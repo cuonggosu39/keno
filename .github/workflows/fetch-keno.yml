@@ -2,9 +2,9 @@ name: Auto Fetch Keno Result
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # mỗi 5 phút
+    - cron: "* * * * *"
   workflow_dispatch:
-
+  
 jobs:
   fetch-keno:
     runs-on: ubuntu-latest
