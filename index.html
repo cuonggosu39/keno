@@ -133,17 +133,24 @@ async function loadKenoData(){
   const res = await fetch("data/keno.json");
   const json = await res.json();
 
-  results = json.data.map(i=>({
-    date: i.draw_time.split(" ")[0],
-    draw: "#"+i.draw_id,
-    time: i.draw_time,
-    nums: i.result.split(/[-\s]+/).map(Number)
-  }));
+  const items = json.data.items; // <-- ĐÚNG CHỖ
+
+  results = items.map(it => {
+    let nums = [];
+    for(let i=1;i<=20;i++){
+      nums.push(parseInt(it["num"+i],10));
+    }
+    return {
+      date: it.openDate.split(" ")[0],
+      draw: "#"+it.drawCode,
+      time: it.openDate,
+      nums: nums
+    };
+  });
 
   startCountdown(results[0].time);
   render();
 }
-
 /* ===== COUNTDOWN KỲ TIẾP THEO (5 PHÚT / KỲ) ===== */
 function startCountdown(drawTime){
   const next = new Date(drawTime);
@@ -208,3 +215,4 @@ loadKenoData();
 
 </body>
 </html>
+
