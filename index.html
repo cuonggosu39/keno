@@ -12,6 +12,7 @@
   --font-cell:22px;
 }
 
+/* body */
 body{
   font-family: Arial, sans-serif;
   background:#fff;
@@ -19,9 +20,9 @@ body{
   padding:15px;
   text-align:center;
 }
-
 h2{ margin-bottom:10px; }
 
+/* buttons */
 button{
   font-size:var(--font-btn);
   padding:8px 18px;
@@ -30,6 +31,7 @@ button{
   border-radius:6px;
 }
 
+/* info */
 #info{
   font-size:22px;
   font-weight:bold;
@@ -37,13 +39,14 @@ button{
   white-space:pre-line;
 }
 
+/* nav */
 .nav{ margin-bottom:10px; }
 
+/* table */
 #board{
   margin:0 auto;
   border-collapse:collapse;
 }
-
 #board td{
   width:var(--cell-width);
   height:var(--cell-height);
@@ -54,11 +57,17 @@ button{
   position: relative;
 }
 
+/* chia bảng 4 phần */
 #board td:nth-child(5){ border-right:3px solid #000; }
 #board tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
-.hit{ background:#4caf50; color:#fff; }
+/* hit – số trúng kỳ hiện tại */
+.hit{
+  background:#4caf50;
+  color:#fff;
+}
 
+/* gạch chân kỳ trước */
 .prev-hit{
   text-decoration: underline;
   text-decoration-thickness: 3px;
@@ -71,9 +80,10 @@ button{
 .hot3{ color:#e65100; font-weight:bold; } /* 8–10 */
 
 /* COLD */
-.cold2{ color:#1e88e5; font-weight:bold; } /* 6–7 gan */
-.cold3{ color:#0d47a1; font-weight:bold; } /* ≥8 gan */
+.cold2{ color:#1e88e5; font-weight:bold; } /* 6–7 */
+.cold3{ color:#0d47a1; font-weight:bold; } /* ≥8 */
 
+/* note */
 .note{
   max-width:1200px;
   margin:20px auto;
@@ -82,31 +92,28 @@ button{
   text-align:left;
   padding:0 10px;
 }
-
 .note-grid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap:12px;
 }
-
 .note-grid > div{
   background:#fafafa;
   padding:10px 12px;
   border-radius:6px;
 }
-
 .note-title{
   grid-column:1 / -1;
   background:none;
   padding:0;
 }
-
 .note-footer{
   grid-column:1 / -1;
   text-align:center;
   color:#555;
 }
 
+/* responsive */
 @media (max-width:600px){
   :root{
     --cell-width:50px;
@@ -118,7 +125,6 @@ button{
   button{ padding:10px 22px; }
   .note{ font-size:14px; }
 }
-
 @media (min-width:1200px){
   :root{
     --cell-width:75px;
@@ -127,7 +133,6 @@ button{
     --font-cell:22px;
   }
 }
-
 @media (min-width:1800px){
   :root{
     --cell-width:90px;
@@ -154,6 +159,7 @@ button{
 
 <table id="board"></table>
 
+<!-- note -->
 <div class="note note-grid">
   <div class="note-title"><b>Giải thích cho khách xem:</b></div>
 
@@ -172,7 +178,8 @@ button{
   <div>
     ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
     • ≥8 kỳ gan: xanh đậm<br>
-    • 6–7 kỳ gan: xanh
+    • 6–7 kỳ gan: xanh<br>
+    • ≤5 kỳ gan: không tô
   </div>
 
   <div class="note-footer">
@@ -181,8 +188,6 @@ button{
 </div>
 
 <textarea id="raw" style="display:none;">
-<!-- dữ liệu giữ nguyên -->
-</textarea>
 31/12/2025	04 10 12 13 14 20 21 35 40 45
 #0265065	46 48 50 53 56 59 64 71 72 74
 31/12/2025	03 04 08 09 14 19 20 26 32 33
@@ -207,23 +212,24 @@ button{
 #0265055	47 51 59 65 69 70 72 75 77 79
 31/12/2025	05 06 15 31 35 38 39 42 50 58
 #0265054	65 66 69 70 72 73 76 77 79 80
+</textarea>
+
 <script>
 let results=[];
 let index=0;
 const WINDOW=10;
 
 function parseData(){
-  let lines=document.getElementById("raw").value.replace(/\u00A0/g," ").trim().split(/\n+/);
+  let lines=document.getElementById("raw").value.trim().split(/\n+/);
   let out=[];
   for(let i=0;i<lines.length;i+=2){
     if(!lines[i+1]) break;
-    let line1=lines[i];
-    let line2=lines[i+1];
-    let date=line1.match(/\d{2}\/\d{2}\/\d{4}/)?.[0]||"";
-    let draw=line2.match(/#\d+/)?.[0]||"";
-    let nums1=line1.replace(date,"").trim().split(/\s+/).map(Number);
-    let nums2=line2.replace(draw,"").trim().split(/\s+/).map(Number);
-    let nums=[...nums1,...nums2].filter(n=>n>=1 && n<=80);
+    let l1=lines[i], l2=lines[i+1];
+    let date=l1.match(/\d{2}\/\d{2}\/\d{4}/)?.[0]||"";
+    let draw=l2.match(/#\d+/)?.[0]||"";
+    let n1=l1.replace(date,"").trim().split(/\s+/).map(Number);
+    let n2=l2.replace(draw,"").trim().split(/\s+/).map(Number);
+    let nums=[...n1,...n2].filter(n=>n>=1 && n<=80);
     if(nums.length===20) out.push({date,draw,nums});
   }
   return out;
@@ -232,7 +238,10 @@ function parseData(){
 function calcStats(){
   let freq=Array(81).fill(0);
   let drought=Array(81).fill(0);
-  results.slice(index,index+WINDOW).forEach(r=>r.nums.forEach(n=>freq[n]++));
+
+  results.slice(index,index+WINDOW)
+    .forEach(r=>r.nums.forEach(n=>freq[n]++));
+
   for(let n=1;n<=80;n++){
     for(let i=index;i<Math.min(results.length,index+WINDOW);i++){
       if(results[i].nums.includes(n)) break;
@@ -247,26 +256,31 @@ function render(){
   let cur=results[index];
   let prev=index+1<results.length?results[index+1].nums:[];
   let {freq,drought}=calcStats();
-  document.getElementById("info").innerText=`Ngày ${cur.date} – Kỳ ${cur.draw}`;
+
+  document.getElementById("info").innerText =
+    `Ngày ${cur.date} – Kỳ ${cur.draw}`;
+
   let tb=document.getElementById("board");
   tb.innerHTML="";
   let n=1;
+
   for(let r=0;r<8;r++){
     let tr=document.createElement("tr");
     for(let c=0;c<10;c++){
       let td=document.createElement("td");
       td.textContent=n.toString().padStart(2,"0");
+
       if(cur.nums.includes(n)) td.classList.add("hit");
       if(prev.includes(n)) td.classList.add("prev-hit");
 
-      /* HOT – logic mới */
-      if(freq[n]>=8) td.classList.add("hot3");
-      else if(freq[n]>=6) td.classList.add("hot2");
-      else if(freq[n]===5) td.classList.add("hot1");
+      // HOT – 10 kỳ
+      if(freq[n] >= 8) td.classList.add("hot3");
+      else if(freq[n] >= 6) td.classList.add("hot2");
+      else if(freq[n] === 5) td.classList.add("hot1");
 
-      /* COLD – logic mới */
-      if(drought[n]>=8) td.classList.add("cold3");
-      else if(drought[n]>=6) td.classList.add("cold2");
+      // COLD – gan
+      if(drought[n] >= 8) td.classList.add("cold3");
+      else if(drought[n] >= 6) td.classList.add("cold2");
 
       tr.appendChild(td);
       n++;
@@ -275,8 +289,8 @@ function render(){
   }
 }
 
-function older(){if(index+1<results.length){index++;render();}}
-function newer(){if(index>0){index--;render();}}
+function older(){ if(index+1<results.length){ index++; render(); } }
+function newer(){ if(index>0){ index--; render(); } }
 
 results=parseData();
 render();
@@ -284,4 +298,3 @@ render();
 
 </body>
 </html>
-
