@@ -192,19 +192,22 @@ function startCountdown(drawTime){
 }
 
 function calcStats(){
-  let freq=Array(81).fill(0);
-  let drought=Array(81).fill(0);
+  let freq = Array(81).fill(0);
+  let drought = Array(81).fill(0);
 
-  results.slice(index,index+WINDOW)
-    .forEach(r=>r.nums.forEach(n=>freq[n]++));
+  // luôn lấy tối đa 10 kỳ kể từ kỳ đang xem
+  const end = Math.min(results.length, index + WINDOW);
+  const slice = results.slice(index, end);
+
+  slice.forEach(r => r.nums.forEach(n => freq[n]++));
 
   for(let n=1;n<=80;n++){
-    for(let i=index;i<Math.min(results.length,index+WINDOW);i++){
+    for(let i=index;i<end;i++){
       if(results[i].nums.includes(n)) break;
       drought[n]++;
     }
   }
-  return {freq,drought};
+  return {freq, drought};
 }
 
 function render(){
@@ -253,4 +256,5 @@ loadKenoData();
 
 </body>
 </html>
+
 
