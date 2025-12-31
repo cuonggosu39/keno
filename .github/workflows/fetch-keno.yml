@@ -1,0 +1,30 @@
+name: Auto Fetch Keno Result
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # mỗi 5 phút
+  workflow_dispatch:
+
+jobs:
+  fetch-keno:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Tạo thư mục data
+        run: mkdir -p data
+
+      - name: Gọi API Keno
+        run: |
+          curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1" \
+          -o data/keno.json
+
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add data/keno.json
+          git commit -m "Auto update keno result" || exit 0
+          git push
