@@ -1,1 +1,70 @@
+name: Fetch Keno API
+
+on:
+  schedule:
+    # Chạy mỗi 5 phút, có thể điều chỉnh
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # để có thể chạy thủ công
+
+jobs:
+  fetch-keno:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Fetch Keno API & Update JSON
+        run: |
+          const fs = require('fs');
+          const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+          const apiURL = "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1";
+          const filePath = "keno_data.json";
+
+          (async () => {
+            try {
+              const res = await fetch(apiURL);
+              const data = await res.json();
+              if(!data?.data?.items?.length) {
+                console.log("No new data from API");
+                return;
+              }
+
+              let newResults = data.data.items.map(item => ({
+                date: item.openDate.split(" ")[0],
+                draw: "#" + item.drawCode,
+                nums: Array.from({length:20},(_,i)=>Number(item["num"+(i+1)]))
+              }));
+
+              let oldResults = [];
+              if (fs.existsSync(filePath)) {
+                oldResults = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+              }
+
+              // Gộp kết quả mới lên trên cũ, bỏ trùng kỳ
+              const combined = [...newResults, ...oldResults].filter((v, i, a) =>
+                i === a.findIndex(t => t.draw === v.draw)
+              );
+
+              fs.writeFileSync(filePath, JSON.stringify(combined, null, 2));
+              console.log("Keno JSON updated:", combined.length, "items");
+
+            } catch (err) {
+              console.error("Error fetching Keno API:", err);
+              process.exit(1);
+            }
+          })();
+          
+      - name: Commit & Push updated JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add keno_data.json
+          git commit -m "Update Keno JSON from API [skip ci]" || echo "No changes to commit"
+          git push
 
