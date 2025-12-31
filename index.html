@@ -149,16 +149,27 @@ const WINDOW=10;
 
 /* ===== LOAD DATA TỰ ĐỘNG TỪ GITHUB ACTION ===== */
 async function loadKenoData(){
-  const res = await fetch("data/keno.json");
+  const res = await fetch("data/latest.json?t=" + Date.now());
   const json = await res.json();
 
-  const items = json.data.items; // <-- ĐÚNG CHỖ
+  const items = json.data.items;
 
   results = items.map(it => {
     let nums = [];
     for(let i=1;i<=20;i++){
       nums.push(parseInt(it["num"+i],10));
     }
+    return {
+      date: it.openDate.split(" ")[0],
+      draw: "#"+it.drawCode,
+      time: it.openDate,
+      nums: nums
+    };
+  });
+
+  startCountdown(results[0].time);
+  render();
+}
     return {
       date: it.openDate.split(" ")[0],
       draw: "#"+it.drawCode,
@@ -240,6 +251,7 @@ loadKenoData();
 
 </body>
 </html>
+
 
 
 
