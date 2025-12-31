@@ -1,4 +1,4 @@
-name: Auto Fetch Keno (Stable)
+name: Auto Fetch Keno (Final)
 
 on:
   schedule:
@@ -16,26 +16,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Fetch API
         run: |
           mkdir -p data
           curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1" > data/latest.json
 
-      - name: Commit if changed
+      - name: Commit & Push
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-          git pull origin main --rebase || true
+          git add data/latest.json
 
-          if git diff --quiet data/latest.json; then
-            echo "No new data"
+          if git diff --cached --quiet; then
+            echo "No new draw"
             exit 0
           fi
 
-          git add data/latest.json
-          git commit -m "Update keno latest"
-          git push
+          git commit -m "Auto update keno"
+          git push --force-with-lease
