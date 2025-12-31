@@ -2,7 +2,7 @@ name: Auto Fetch Keno Result
 
 on:
   schedule:
-    - cron: "*/1 * * * *"   # mỗi phút
+    - cron: "*/1 * * * *"
   workflow_dispatch:
 
 concurrency:
@@ -14,62 +14,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Fetch Keno API
+      - name: Fetch API
         run: |
-          curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1" > data/new.json
+          mkdir -p data
+          curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1" > data/latest.json
 
-      - name: Compare & Update
+      - name: Validate & Commit
         run: |
           node <<'EOF'
           const fs = require("fs");
 
-          const newData = JSON.parse(fs.readFileSync("data/new.json","utf8"));
-          if (!newData?.data?.items?.length) {
-            console.log("API invalid");
+          const file = "data/latest.json";
+          const data = JSON.parse(fs.readFileSync(file,"utf8"));
+
+          if (!data?.data?.items?.length) {
+            console.log("Invalid API data");
             process.exit(0);
           }
 
-          const newDraw = newData.data.items[0].drawCode;
+          const draw = data.data.items[0].drawCode;
+          const meta = { draw, updatedAt: new Date().toISOString() };
+          fs.writeFileSync("data/meta.json", JSON.stringify(meta, null, 2));
 
-          let oldDraw = null;
-          if (fs.existsSync("data/latest.json")) {
-            try {
-              const old = JSON.parse(fs.readFileSync("data/latest.json","utf8"));
-              oldDraw = old.data.items[0].drawCode;
-            } catch {}
-          }
-
-          if (newDraw === oldDraw) {
-            console.log("No new draw");
-            process.exit(0);
-          }
-
-          fs.writeFileSync("data/latest.json", JSON.stringify(newData, null, 2));
-
-          let history = [];
-          if (fs.existsSync("data/history.json")) {
-            history = JSON.parse(fs.readFileSync("data/history.json","utf8"));
-          }
-
-          history.unshift(newData.data.items[0]);
-          history = history.slice(0, 2000); // lưu nhiều ngày
-
-          fs.writeFileSync("data/history.json", JSON.stringify(history, null, 2));
-          fs.writeFileSync("data/meta.json", JSON.stringify({
-            drawCode: newDraw,
-            updatedAt: new Date().toISOString()
-          }, null, 2));
-
-          console.log("Updated to draw", newDraw);
+          console.log("Latest draw:", draw);
           EOF
 
-      - name: Commit & Push
-        run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git pull origin main --rebase
-          git add data/*.json
-          git commit -m "Auto update keno result" || exit 0
+
+          git pull origin main --rebase || true
+          git add data/latest.json data/meta.json
+          git commit -m "Auto update keno draw" || exit 0
           git push
