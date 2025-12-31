@@ -1,4 +1,4 @@
-name: Auto Fetch Keno (Final)
+name: Auto Fetch Keno (Stable)
 
 on:
   schedule:
@@ -16,6 +16,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Reset to remote
+        run: |
+          git fetch origin
+          git reset --hard origin/main
 
       - name: Fetch API
         run: |
@@ -35,4 +43,4 @@ jobs:
           fi
 
           git commit -m "Auto update keno"
-          git push --force-with-lease
+          git push --force
