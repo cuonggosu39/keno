@@ -2,88 +2,74 @@ name: Auto Fetch Keno Result
 
 on:
   schedule:
-    - cron: "* * * * *"   # mỗi 1 phút
+    - cron: "*/1 * * * *"   # mỗi phút
   workflow_dispatch:
+
+concurrency:
+  group: keno-fetch
+  cancel-in-progress: true
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Fetch Keno data from API
+      - name: Fetch Keno API
         run: |
-          mkdir -p data
+          curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1" > data/new.json
 
-          API_URL="https://veso247.vn:19901/api/keno/result/keno?page_size=50&page_index=1"
+      - name: Compare & Update
+        run: |
+          node <<'EOF'
+          const fs = require("fs");
 
-          echo "Fetching API..."
-          curl -s "$API_URL" > data/new.json
+          const newData = JSON.parse(fs.readFileSync("data/new.json","utf8"));
+          if (!newData?.data?.items?.length) {
+            console.log("API invalid");
+            process.exit(0);
+          }
 
-          # lấy drawCode mới nhất từ API
-          NEW_DRAW=$(jq -r '.data.items[0].drawCode' data/new.json)
+          const newDraw = newData.data.items[0].drawCode;
 
-          if [ "$NEW_DRAW" = "null" ] || [ -z "$NEW_DRAW" ]; then
-            echo "API error or empty data"
-            exit 0
-          fi
+          let oldDraw = null;
+          if (fs.existsSync("data/latest.json")) {
+            try {
+              const old = JSON.parse(fs.readFileSync("data/latest.json","utf8"));
+              oldDraw = old.data.items[0].drawCode;
+            } catch {}
+          }
 
-          echo "New drawCode: $NEW_DRAW"
+          if (newDraw === oldDraw) {
+            console.log("No new draw");
+            process.exit(0);
+          }
 
-          # nếu chưa có latest.json thì init
-          if [ ! -f data/latest.json ]; then
-            echo "Init latest.json"
-            cp data/new.json data/latest.json
-            echo '{"last_update":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > data/meta.json
-            echo "[]" > data/history.json
-          fi
+          fs.writeFileSync("data/latest.json", JSON.stringify(newData, null, 2));
 
-          OLD_DRAW=$(jq -r '.data.items[0].drawCode' data/latest.json)
+          let history = [];
+          if (fs.existsSync("data/history.json")) {
+            history = JSON.parse(fs.readFileSync("data/history.json","utf8"));
+          }
 
-          echo "Old drawCode: $OLD_DRAW"
+          history.unshift(newData.data.items[0]);
+          history = history.slice(0, 2000); // lưu nhiều ngày
 
-          # nếu có kỳ mới
-          if [ "$NEW_DRAW" != "$OLD_DRAW" ]; then
-            echo "New draw detected → updating"
+          fs.writeFileSync("data/history.json", JSON.stringify(history, null, 2));
+          fs.writeFileSync("data/meta.json", JSON.stringify({
+            drawCode: newDraw,
+            updatedAt: new Date().toISOString()
+          }, null, 2));
 
-            # cập nhật latest
-            cp data/new.json data/latest.json
+          console.log("Updated to draw", newDraw);
+          EOF
 
-            # append lịch sử (chỉ thêm những draw chưa có)
-            jq -s '
-              (.[0] // []) as $old
-              | .[1].data.items
-              | map(select(.drawCode as $d | ($old | map(.drawCode) | index($d)) | not))
-              | . + $old
-            ' data/history.json data/new.json > data/history_tmp.json
-
-            mv data/history_tmp.json data/history.json
-
-            # update meta
-            jq -n \
-              --arg draw "$NEW_DRAW" \
-              --arg time "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-              '{last_draw:$draw,last_update:$time}' > data/meta.json
-
-          else
-            echo "No new draw"
-          fi
-
-      - name: Commit & push if changed
+      - name: Commit & Push
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-          git add data
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "Auto update keno result"
-            git push
-          fi
+          git pull origin main --rebase
+          git add data/*.json
+          git commit -m "Auto update keno result" || exit 0
+          git push
