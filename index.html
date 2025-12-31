@@ -20,6 +20,7 @@ body{
   padding:15px;
   text-align:center;
 }
+
 h2{ margin-bottom:10px; }
 
 /* buttons */
@@ -47,6 +48,7 @@ button{
   margin:0 auto;
   border-collapse:collapse;
 }
+
 #board td{
   width:var(--cell-width);
   height:var(--cell-height);
@@ -62,10 +64,7 @@ button{
 #board tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
 /* hit – số trúng kỳ hiện tại */
-.hit{
-  background:#4caf50;
-  color:#fff;
-}
+.hit{ background:#4caf50; color:#fff; }
 
 /* gạch chân kỳ trước */
 .prev-hit{
@@ -75,15 +74,16 @@ button{
 }
 
 /* HOT */
-.hot1{ color:#ffcc80; font-weight:bold; } /* 5 lần */
-.hot2{ color:#ff9800; font-weight:bold; } /* 6–7 */
-.hot3{ color:#e65100; font-weight:bold; } /* 8–10 */
+.hot1{ color:#ffcc80; font-weight:bold; }
+.hot2{ color:#ff9800; font-weight:bold; }
+.hot3{ color:#e65100; font-weight:bold; }
 
 /* COLD */
-.cold2{ color:#1e88e5; font-weight:bold; } /* 6–7 */
-.cold3{ color:#0d47a1; font-weight:bold; } /* ≥8 */
+.cold1{ color:#90caf9; }
+.cold2{ color:#1e88e5; font-weight:bold; }
+.cold3{ color:#0d47a1; font-weight:bold; }
 
-/* note */
+/* note / legend – GIỮ GỐC */
 .note{
   max-width:1200px;
   margin:20px auto;
@@ -92,21 +92,26 @@ button{
   text-align:left;
   padding:0 10px;
 }
+
+/* ===== CHỈ THÊM GRID LAYOUT ===== */
 .note-grid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap:12px;
 }
+
 .note-grid > div{
   background:#fafafa;
   padding:10px 12px;
   border-radius:6px;
 }
+
 .note-title{
   grid-column:1 / -1;
   background:none;
   padding:0;
 }
+
 .note-footer{
   grid-column:1 / -1;
   text-align:center;
@@ -125,6 +130,7 @@ button{
   button{ padding:10px 22px; }
   .note{ font-size:14px; }
 }
+
 @media (min-width:1200px){
   :root{
     --cell-width:75px;
@@ -133,6 +139,7 @@ button{
     --font-cell:22px;
   }
 }
+
 @media (min-width:1800px){
   :root{
     --cell-width:90px;
@@ -159,7 +166,7 @@ button{
 
 <table id="board"></table>
 
-<!-- note -->
+<!-- note / giải thích – CHỈ ĐỔI LAYOUT -->
 <div class="note note-grid">
   <div class="note-title"><b>Giải thích cho khách xem:</b></div>
 
@@ -170,16 +177,16 @@ button{
 
   <div>
     🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
-    • 8–10 lần: cam đậm<br>
-    • 6–7 lần: cam<br>
-    • 5 lần: cam nhạt
+    • 6–10 lần: cam đậm<br>
+    • 4–5 lần: cam<br>
+    • 3 lần: cam nhạt
   </div>
 
   <div>
     ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
     • ≥8 kỳ gan: xanh đậm<br>
     • 6–7 kỳ gan: xanh<br>
-    • ≤5 kỳ gan: không tô
+    • 4–5 kỳ gan: xanh nhạt
   </div>
 
   <div class="note-footer">
@@ -212,6 +219,7 @@ button{
 #0265055	47 51 59 65 69 70 72 75 77 79
 31/12/2025	05 06 15 31 35 38 39 42 50 58
 #0265054	65 66 69 70 72 73 76 77 79 80
+
 </textarea>
 
 <script>
@@ -220,16 +228,17 @@ let index=0;
 const WINDOW=10;
 
 function parseData(){
-  let lines=document.getElementById("raw").value.trim().split(/\n+/);
+  let lines=document.getElementById("raw").value.replace(/\u00A0/g," ").trim().split(/\n+/);
   let out=[];
   for(let i=0;i<lines.length;i+=2){
     if(!lines[i+1]) break;
-    let l1=lines[i], l2=lines[i+1];
-    let date=l1.match(/\d{2}\/\d{2}\/\d{4}/)?.[0]||"";
-    let draw=l2.match(/#\d+/)?.[0]||"";
-    let n1=l1.replace(date,"").trim().split(/\s+/).map(Number);
-    let n2=l2.replace(draw,"").trim().split(/\s+/).map(Number);
-    let nums=[...n1,...n2].filter(n=>n>=1 && n<=80);
+    let line1=lines[i];
+    let line2=lines[i+1];
+    let date=line1.match(/\d{2}\/\d{2}\/\d{4}/)?.[0]||"";
+    let draw=line2.match(/#\d+/)?.[0]||"";
+    let nums1=line1.replace(date,"").trim().split(/\s+/).map(Number);
+    let nums2=line2.replace(draw,"").trim().split(/\s+/).map(Number);
+    let nums=[...nums1,...nums2].filter(n=>n>=1 && n<=80);
     if(nums.length===20) out.push({date,draw,nums});
   }
   return out;
@@ -238,10 +247,7 @@ function parseData(){
 function calcStats(){
   let freq=Array(81).fill(0);
   let drought=Array(81).fill(0);
-
-  results.slice(index,index+WINDOW)
-    .forEach(r=>r.nums.forEach(n=>freq[n]++));
-
+  results.slice(index,index+WINDOW).forEach(r=>r.nums.forEach(n=>freq[n]++));
   for(let n=1;n<=80;n++){
     for(let i=index;i<Math.min(results.length,index+WINDOW);i++){
       if(results[i].nums.includes(n)) break;
@@ -256,32 +262,23 @@ function render(){
   let cur=results[index];
   let prev=index+1<results.length?results[index+1].nums:[];
   let {freq,drought}=calcStats();
-
-  document.getElementById("info").innerText =
-    `Ngày ${cur.date} – Kỳ ${cur.draw}`;
-
+  document.getElementById("info").innerText=`Ngày ${cur.date} – Kỳ ${cur.draw}`;
   let tb=document.getElementById("board");
   tb.innerHTML="";
   let n=1;
-
   for(let r=0;r<8;r++){
     let tr=document.createElement("tr");
     for(let c=0;c<10;c++){
       let td=document.createElement("td");
       td.textContent=n.toString().padStart(2,"0");
-
       if(cur.nums.includes(n)) td.classList.add("hit");
       if(prev.includes(n)) td.classList.add("prev-hit");
-
-      // HOT – 10 kỳ
-      if(freq[n] >= 8) td.classList.add("hot3");
-      else if(freq[n] >= 6) td.classList.add("hot2");
-      else if(freq[n] === 5) td.classList.add("hot1");
-
-      // COLD – gan
-      if(drought[n] >= 8) td.classList.add("cold3");
-      else if(drought[n] >= 6) td.classList.add("cold2");
-
+      if(freq[n]>=6) td.classList.add("hot3");
+      else if(freq[n]>=4) td.classList.add("hot2");
+      else if(freq[n]===3) td.classList.add("hot1");
+      if(drought[n]>=8) td.classList.add("cold3");
+      else if(drought[n]>=6) td.classList.add("cold2");
+      else if(drought[n]>=4) td.classList.add("cold1");
       tr.appendChild(td);
       n++;
     }
@@ -289,11 +286,28 @@ function render(){
   }
 }
 
-function older(){ if(index+1<results.length){ index++; render(); } }
-function newer(){ if(index>0){ index--; render(); } }
+/* auto resize bảng */
+function autoResize(){
+  const vw=window.innerWidth;
+  if(vw<600){
+    document.documentElement.style.setProperty('--cell-width','50px');
+    document.documentElement.style.setProperty('--cell-height','45px');
+  } else if(vw>=1800){
+    document.documentElement.style.setProperty('--cell-width','90px');
+    document.documentElement.style.setProperty('--cell-height','60px');
+  } else {
+    document.documentElement.style.setProperty('--cell-width','75px');
+    document.documentElement.style.setProperty('--cell-height','55px');
+  }
+}
+
+function older(){if(index+1<results.length){index++;render();}}
+function newer(){if(index>0){index--;render();}}
 
 results=parseData();
+autoResize();
 render();
+window.addEventListener('resize',autoResize);
 </script>
 
 </body>
