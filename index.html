@@ -195,8 +195,10 @@ button{
 </div>
 
 <textarea id="raw" style="display:none;">
-31/12/2025	2	6	14	23	25	26	27	34	38	41
-#0265068	44	45	46	49	51	54	56	64	67	73
+31/12/2025	07 10 15 20 24 26 33 34 36 37
+#0265069	43 44 46 48 49 57 61 67 68 73
+31/12/2025	02 06 14 23 25 26 27 34 38 41
+#0265068	44 45 46 49 51 54 56 64 67 73
 31/12/2025	01 02 04 07 10 11 17 22 25 27
 #0265067	31 32 37 40 52 54 55 61 62 79
 31/12/2025	01 02 03 06 08 10 11 24 35 38
@@ -225,7 +227,6 @@ button{
 #0265055	47 51 59 65 69 70 72 75 77 79
 31/12/2025	05 06 15 31 35 38 39 42 50 58
 #0265054	65 66 69 70 72 73 76 77 79 80
-
 </textarea>
 
 <script>
@@ -279,14 +280,12 @@ function render(){
       td.textContent=n.toString().padStart(2,"0");
       if(cur.nums.includes(n)) td.classList.add("hit");
       if(prev.includes(n)) td.classList.add("prev-hit");
-      // HOT – 10 kỳ gần nhất
-if (freq[n] >= 8) td.classList.add("hot3");      // 8–10 lần
-else if (freq[n] >= 6) td.classList.add("hot2"); // 6–7 lần
-else if (freq[n] === 5) td.classList.add("hot1");// đúng 5 lần
-// COLD – gan
-if (drought[n] >= 8) td.classList.add("cold3");  // ≥8 kỳ gan
-else if (drought[n] >= 6) td.classList.add("cold2"); // 6–7 kỳ gan
-// ≤5: không tô
+      if(freq[n]>=6) td.classList.add("hot3");
+      else if(freq[n]>=4) td.classList.add("hot2");
+      else if(freq[n]===3) td.classList.add("hot1");
+      if(drought[n]>=8) td.classList.add("cold3");
+      else if(drought[n]>=6) td.classList.add("cold2");
+      else if(drought[n]>=4) td.classList.add("cold1");
       tr.appendChild(td);
       n++;
     }
@@ -320,6 +319,3 @@ window.addEventListener('resize',autoResize);
 
 </body>
 </html>
-
-
-
