@@ -357,10 +357,46 @@ results=parseData();
 autoResize();
 render();
 window.addEventListener('resize',autoResize);
+<script>
+// ==== THÊM FETCH API TỰ ĐỘNG ====
+// Sử dụng URL API bạn cung cấp
+const apiURL = "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1";
+
+async function fetchKenoAPI(){
+  try {
+    const res = await fetch(apiURL);
+    const data = await res.json();
+
+    if(!data?.data?.items?.length) return;
+
+    // Chuyển JSON API sang cùng định dạng với results
+    const apiResults = data.data.items.map(item => ({
+      date: item.openDate.split(" ")[0],
+      draw: "#" + item.drawCode,
+      nums: Array.from({length:20},(_,i)=>Number(item["num"+(i+1)]))
+    }));
+
+    // Thêm API vào đầu results, không xóa dữ liệu cũ trong textarea
+    results = [...apiResults, ...results];
+
+    // Reset index về 0 để luôn hiển thị kỳ mới nhất
+    index = 0;
+    render();
+  } catch(err){
+    console.error("Lỗi fetch Keno API:", err);
+  }
+}
+
+// Gọi khi load page
+fetchKenoAPI();
+
+// Tự động cập nhật mỗi 1 phút
+setInterval(fetchKenoAPI, 60000);
 </script>
 
 </body>
 </html>
+
 
 
 
