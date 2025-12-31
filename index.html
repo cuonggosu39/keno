@@ -153,18 +153,24 @@ async function loadKenoData(){
 }
 /* ===== COUNTDOWN KỲ TIẾP THEO (5 PHÚT / KỲ) ===== */
 function startCountdown(drawTime){
-  const next = new Date(drawTime);
-  next.setMinutes(next.getMinutes()+5);
+  // drawTime: "31/12/2025 18:24:00"
+  const [datePart, timePart] = drawTime.split(" ");
+  const [d, m, y] = datePart.split("/").map(Number);
+  const [hh, mm, ss] = timePart.split(":").map(Number);
+
+  const last = new Date(y, m-1, d, hh, mm, ss);
+  const next = new Date(last.getTime() + 5*60*1000); // +5 phút
+
   setInterval(()=>{
     const now = new Date();
-    let diff = Math.max(0, next-now);
-    let m = Math.floor(diff/60000);
-    let s = Math.floor(diff%60000/1000);
+    let diff = Math.max(0, next - now);
+    let min = Math.floor(diff / 60000);
+    let sec = Math.floor((diff % 60000) / 1000);
+
     document.getElementById("countdown").innerText =
-      `⏳ Kỳ tiếp theo sau: ${m}:${s.toString().padStart(2,"0")}`;
+      `⏳ Kỳ tiếp theo sau: ${min}:${sec.toString().padStart(2,"0")}`;
   },1000);
 }
-
 function calcStats(){
   let freq=Array(81).fill(0);
   let drought=Array(81).fill(0);
@@ -215,4 +221,5 @@ loadKenoData();
 
 </body>
 </html>
+
 
