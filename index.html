@@ -11,8 +11,6 @@
   --font-btn:18px;
   --font-cell:22px;
 }
-
-/* body */
 body{
   font-family: Arial, sans-serif;
   background:#fff;
@@ -20,10 +18,13 @@ body{
   padding:15px;
   text-align:center;
 }
-
-h2{ margin-bottom:10px; }
-
-/* buttons */
+h2{ margin-bottom:6px; }
+#countdown{
+  font-size:20px;
+  color:#d32f2f;
+  font-weight:bold;
+  margin-bottom:6px;
+}
 button{
   font-size:var(--font-btn);
   padding:8px 18px;
@@ -31,24 +32,17 @@ button{
   cursor:pointer;
   border-radius:6px;
 }
-
-/* info */
 #info{
   font-size:22px;
   font-weight:bold;
   margin:10px 0;
   white-space:pre-line;
 }
-
-/* nav */
 .nav{ margin-bottom:10px; }
-
-/* table */
 #board{
   margin:0 auto;
   border-collapse:collapse;
 }
-
 #board td{
   width:var(--cell-width);
   height:var(--cell-height);
@@ -58,32 +52,20 @@ button{
   vertical-align:middle;
   position: relative;
 }
-
-/* chia bảng 4 phần */
 #board td:nth-child(5){ border-right:3px solid #000; }
 #board tr:nth-child(4) td{ border-bottom:3px solid #000; }
-
-/* hit – số trúng kỳ hiện tại */
 .hit{ background:#4caf50; color:#fff; }
-
-/* gạch chân kỳ trước */
 .prev-hit{
   text-decoration: underline;
   text-decoration-thickness: 3px;
   text-underline-offset: 6px;
 }
-
-/* HOT */
 .hot1{ color:#ffcc80; font-weight:bold; }
 .hot2{ color:#ff9800; font-weight:bold; }
 .hot3{ color:#e65100; font-weight:bold; }
-
-/* COLD */
 .cold1{ color:#90caf9; }
 .cold2{ color:#1e88e5; font-weight:bold; }
 .cold3{ color:#0d47a1; font-weight:bold; }
-
-/* note / legend – GIỮ GỐC */
 .note{
   max-width:1200px;
   margin:20px auto;
@@ -92,33 +74,22 @@ button{
   text-align:left;
   padding:0 10px;
 }
-
-/* ===== CHỈ THÊM GRID LAYOUT ===== */
 .note-grid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap:12px;
 }
-
 .note-grid > div{
   background:#fafafa;
   padding:10px 12px;
   border-radius:6px;
 }
-
-.note-title{
-  grid-column:1 / -1;
-  background:none;
-  padding:0;
-}
-
+.note-title{ grid-column:1 / -1; }
 .note-footer{
   grid-column:1 / -1;
   text-align:center;
   color:#555;
 }
-
-/* responsive */
 @media (max-width:600px){
   :root{
     --cell-width:50px;
@@ -127,28 +98,6 @@ button{
     --font-cell:16px;
   }
   #info{ font-size:18px; }
-  button{ padding:10px 22px; }
-  .note{ font-size:14px; }
-}
-
-@media (min-width:1200px){
-  :root{
-    --cell-width:75px;
-    --cell-height:55px;
-    --font-btn:20px;
-    --font-cell:22px;
-  }
-}
-
-@media (min-width:1800px){
-  :root{
-    --cell-width:90px;
-    --cell-height:60px;
-    --font-btn:28px;
-    --font-cell:30px;
-  }
-  #info{ font-size:32px; }
-  .note{ font-size:20px; }
 }
 </style>
 </head>
@@ -156,7 +105,7 @@ button{
 <body>
 
 <h2>Keno – Thống kê Hot / Cold (10 kỳ gần nhất)</h2>
-
+<div id="countdown"></div>
 <div id="info"></div>
 
 <div class="nav">
@@ -166,32 +115,12 @@ button{
 
 <table id="board"></table>
 
-<!-- note / giải thích – CHỈ ĐỔI LAYOUT -->
 <div class="note note-grid">
   <div class="note-title"><b>Giải thích cho khách xem:</b></div>
-
-  <div>
-    🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
-    ▬ <b>Gạch chân</b>: số trúng kỳ liền trước
-  </div>
-
-  <div>
-    🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
-    • 6–10 lần: cam đậm<br>
-    • 4–5 lần: cam<br>
-    • 3 lần: cam nhạt
-  </div>
-
-  <div>
-    ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
-    • ≥8 kỳ gan: xanh đậm<br>
-    • 6–7 kỳ gan: xanh<br>
-    • 4–5 kỳ gan: xanh nhạt
-  </div>
-
-  <div class="note-footer">
-    <i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
-  </div>
+  <div>🟢 <b>Nền xanh</b>: số trúng kỳ đang xem<br>▬ <b>Gạch chân</b>: kỳ liền trước</div>
+  <div>🔥 <b>HOT</b>: xuất hiện nhiều trong 10 kỳ</div>
+  <div>❄ <b>COLD</b>: số gan</div>
+  <div class="note-footer"><i>Chỉ mang tính tham khảo</i></div>
 </div>
 
 <script>
@@ -199,15 +128,34 @@ let results=[];
 let index=0;
 const WINDOW=10;
 
-// Hàm parse data từ JSON file
-function parseData(json){
-  const out = [];
-  json.forEach(item => {
-    if(item.nums && item.nums.length===20){
-      out.push({date:item.date, draw:item.draw, nums:item.nums});
-    }
-  });
-  return out;
+/* ===== LOAD DATA TỰ ĐỘNG TỪ GITHUB ACTION ===== */
+async function loadKenoData(){
+  const res = await fetch("data/keno.json");
+  const json = await res.json();
+
+  results = json.data.map(i=>({
+    date: i.draw_time.split(" ")[0],
+    draw: "#"+i.draw_id,
+    time: i.draw_time,
+    nums: i.result.split(/[-\s]+/).map(Number)
+  }));
+
+  startCountdown(results[0].time);
+  render();
+}
+
+/* ===== COUNTDOWN KỲ TIẾP THEO (5 PHÚT / KỲ) ===== */
+function startCountdown(drawTime){
+  const next = new Date(drawTime);
+  next.setMinutes(next.getMinutes()+5);
+  setInterval(()=>{
+    const now = new Date();
+    let diff = Math.max(0, next-now);
+    let m = Math.floor(diff/60000);
+    let s = Math.floor(diff%60000/1000);
+    document.getElementById("countdown").innerText =
+      `⏳ Kỳ tiếp theo sau: ${m}:${s.toString().padStart(2,"0")}`;
+  },1000);
 }
 
 function calcStats(){
@@ -252,38 +200,8 @@ function render(){
   }
 }
 
-function autoResize(){
-  const vw=window.innerWidth;
-  if(vw<600){
-    document.documentElement.style.setProperty('--cell-width','50px');
-    document.documentElement.style.setProperty('--cell-height','45px');
-  } else if(vw>=1800){
-    document.documentElement.style.setProperty('--cell-width','90px');
-    document.documentElement.style.setProperty('--cell-height','60px');
-  } else {
-    document.documentElement.style.setProperty('--cell-width','75px');
-    document.documentElement.style.setProperty('--cell-height','55px');
-  }
-}
-
 function older(){if(index+1<results.length){index++;render();}}
 function newer(){if(index>0){index--;render();}}
-
-autoResize();
-window.addEventListener('resize',autoResize);
-
-// ==== Fetch dữ liệu JSON từ GitHub ====
-async function loadKenoData(){
-  try{
-    const res = await fetch('keno_data.json'); // file do workflow tạo ra
-    const json = await res.json();
-    results = parseData(json);
-    index = 0; // hiển thị kỳ mới nhất
-    render();
-  } catch(err){
-    console.error("Không tải được dữ liệu Keno:", err);
-  }
-}
 
 loadKenoData();
 </script>
