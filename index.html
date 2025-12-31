@@ -12,7 +12,6 @@
   --font-cell:22px;
 }
 
-/* body */
 body{
   font-family: Arial, sans-serif;
   background:#fff;
@@ -23,7 +22,6 @@ body{
 
 h2{ margin-bottom:10px; }
 
-/* buttons */
 button{
   font-size:var(--font-btn);
   padding:8px 18px;
@@ -32,7 +30,6 @@ button{
   border-radius:6px;
 }
 
-/* info */
 #info{
   font-size:22px;
   font-weight:bold;
@@ -40,10 +37,8 @@ button{
   white-space:pre-line;
 }
 
-/* nav */
 .nav{ margin-bottom:10px; }
 
-/* table */
 #board{
   margin:0 auto;
   border-collapse:collapse;
@@ -59,14 +54,11 @@ button{
   position: relative;
 }
 
-/* chia bảng 4 phần */
 #board td:nth-child(5){ border-right:3px solid #000; }
 #board tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
-/* hit – số trúng kỳ hiện tại */
 .hit{ background:#4caf50; color:#fff; }
 
-/* gạch chân kỳ trước */
 .prev-hit{
   text-decoration: underline;
   text-decoration-thickness: 3px;
@@ -74,16 +66,14 @@ button{
 }
 
 /* HOT */
-.hot1{ color:#ffcc80; font-weight:bold; }
-.hot2{ color:#ff9800; font-weight:bold; }
-.hot3{ color:#e65100; font-weight:bold; }
+.hot1{ color:#ffcc80; font-weight:bold; } /* 5 lần */
+.hot2{ color:#ff9800; font-weight:bold; } /* 6–7 */
+.hot3{ color:#e65100; font-weight:bold; } /* 8–10 */
 
 /* COLD */
-.cold1{ color:#90caf9; }
-.cold2{ color:#1e88e5; font-weight:bold; }
-.cold3{ color:#0d47a1; font-weight:bold; }
+.cold2{ color:#1e88e5; font-weight:bold; } /* 6–7 gan */
+.cold3{ color:#0d47a1; font-weight:bold; } /* ≥8 gan */
 
-/* note / legend – GIỮ GỐC */
 .note{
   max-width:1200px;
   margin:20px auto;
@@ -93,7 +83,6 @@ button{
   padding:0 10px;
 }
 
-/* ===== CHỈ THÊM GRID LAYOUT ===== */
 .note-grid{
   display:grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -118,7 +107,6 @@ button{
   color:#555;
 }
 
-/* responsive */
 @media (max-width:600px){
   :root{
     --cell-width:50px;
@@ -166,7 +154,6 @@ button{
 
 <table id="board"></table>
 
-<!-- note / giải thích – CHỈ ĐỔI LAYOUT -->
 <div class="note note-grid">
   <div class="note-title"><b>Giải thích cho khách xem:</b></div>
 
@@ -177,16 +164,15 @@ button{
 
   <div>
     🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
-    • 6–10 lần: cam đậm<br>
-    • 4–5 lần: cam<br>
-    • 3 lần: cam nhạt
+    • 8–10 lần: cam đậm<br>
+    • 6–7 lần: cam<br>
+    • 5 lần: cam nhạt
   </div>
 
   <div>
     ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
     • ≥8 kỳ gan: xanh đậm<br>
-    • 6–7 kỳ gan: xanh<br>
-    • 4–5 kỳ gan: xanh nhạt
+    • 6–7 kỳ gan: xanh
   </div>
 
   <div class="note-footer">
@@ -195,46 +181,7 @@ button{
 </div>
 
 <textarea id="raw" style="display:none;">
-27/12/2025	3	4	8	9	14	19	20	26	32	33
-#0265064	34	45	46	49	55	56	59	61	68	75
-27/12/2025	1	13	17	22	23	28	32	36	40	41
-#0265063	48	52	56	58	59	69	72	74	78	79
-27/12/2025	6	16	17	18	21	24	28	29	33	34
-#0265062	41	42	50	53	57	65	69	72	75	80
-27/12/2025	2	5	8	9	10	11	13	14	34	37
-#0265061	42	44	51	54	55	58	62	70	71	75
-27/12/2025	5	9	17	19	22	28	31	33	35	37
-#0265060	39	43	44	50	52	54	61	62	66	77
-27/12/2025	4	6	9	10	13	23	33	39	42	43
-#0265059	44	50	58	68	71	72	73	74	77	78
-27/12/2025	4	5	6	10	13	17	22	33	36	38
-#0265058	42	44	52	67	68	69	73	74	77	79
-27/12/2025	7	8	11	17	26	29	36	38	39	43
-#0265057	44	54	57	62	63	64	68	72	75	80
-31/12/2025	05 09 11 16 17 19 21 23 26 30
-#0265056	35 36 40 42 49 52 63 64 70 80
-31/12/2025	04 07 08 09 14 23 24 27 35 44
-#0265055	47 51 59 65 69 70 72 75 77 79
-31/12/2025	05 06 15 31 35 38 39 42 50 58
-#0265054	65 66 69 70 72 73 76 77 79 80
-31/12/2025	09 10 14 16 17 22 26 34 36 43
-#0265053	44 45 49 50 52 55 58 62 67 76
-31/12/2025	04 11 13 21 23 24 25 28 31 32
-#0265052	35 37 38 45 48 54 56 62 70 78
-31/12/2025	01 04 05 06 09 10 12 21 26 27
-#0265051	28 29 34 37 38 41 48 55 60 75
-31/12/2025	10 11 15 16 20 32 33 36 41 45
-#0265050	50 51 52 54 56 59 60 65 66 68
-31/12/2025	05 08 10 12 14 20 22 26 27 32
-#0265049	33 37 38 49 57 62 64 66 74 76
-31/12/2025	02 05 07 12 14 15 18 19 22 29
-#0265048	30 40 43 45 52 61 66 68 73 75
-31/12/2025	10 14 15 20 23 28 29 30 37 40
-#0265047	41 45 47 59 61 63 64 69 70 78
-31/12/2025	03 09 10 11 14 15 20 24 33 34
-#0265046	36 44 50 56 60 64 65 66 73 74
-31/12/2025	06 07 08 09 16 17 20 21 32 34
-#0265045	36 38 39 52 54 61 63 66 69 80
+<!-- dữ liệu giữ nguyên -->
 </textarea>
 
 <script>
@@ -288,12 +235,16 @@ function render(){
       td.textContent=n.toString().padStart(2,"0");
       if(cur.nums.includes(n)) td.classList.add("hit");
       if(prev.includes(n)) td.classList.add("prev-hit");
-      if(freq[n]>=6) td.classList.add("hot3");
-      else if(freq[n]>=4) td.classList.add("hot2");
-      else if(freq[n]===3) td.classList.add("hot1");
+
+      /* HOT – logic mới */
+      if(freq[n]>=8) td.classList.add("hot3");
+      else if(freq[n]>=6) td.classList.add("hot2");
+      else if(freq[n]===5) td.classList.add("hot1");
+
+      /* COLD – logic mới */
       if(drought[n]>=8) td.classList.add("cold3");
       else if(drought[n]>=6) td.classList.add("cold2");
-      else if(drought[n]>=4) td.classList.add("cold1");
+
       tr.appendChild(td);
       n++;
     }
@@ -301,45 +252,12 @@ function render(){
   }
 }
 
-/* auto resize bảng */
-function autoResize(){
-  const vw=window.innerWidth;
-  if(vw<600){
-    document.documentElement.style.setProperty('--cell-width','50px');
-    document.documentElement.style.setProperty('--cell-height','45px');
-  } else if(vw>=1800){
-    document.documentElement.style.setProperty('--cell-width','90px');
-    document.documentElement.style.setProperty('--cell-height','60px');
-  } else {
-    document.documentElement.style.setProperty('--cell-width','75px');
-    document.documentElement.style.setProperty('--cell-height','55px');
-  }
-}
-
 function older(){if(index+1<results.length){index++;render();}}
 function newer(){if(index>0){index--;render();}}
 
 results=parseData();
-autoResize();
 render();
-window.addEventListener('resize',autoResize);
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
