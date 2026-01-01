@@ -89,7 +89,7 @@ button{
 
 <body>
 
-<h2>Keno – Thống kê Hot / Cold (10 kỳ gần nhất)</h2>
+<h2>Keno – Thống kê Hot / Cold (10 kỳ)</h2>
 <div id="info"></div>
 
 <div class="nav">
@@ -100,25 +100,25 @@ button{
 <table id="board"></table>
 
 <div class="note note-grid">
-  <div class="note-title"><b>Giải thích cho khách xem:</b></div>
+  <div class="note-title"><b>Giải thích:</b></div>
   <div>
-    🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
-    ▬ <b>Gạch chân</b>: số trúng kỳ liền trước
+    🟢 Nền xanh: số trúng kỳ đang xem<br>
+    ▬ Gạch chân: trúng kỳ trước
   </div>
   <div>
-    🔥 <b>HOT</b> (10 kỳ):<br>
+    🔥 HOT (10 kỳ):<br>
     • 7–10 lần: cam đậm<br>
     • 5–6 lần: cam<br>
     • 4 lần: cam nhạt
   </div>
   <div>
-    ❄ <b>COLD</b> (gan):<br>
+    ❄ COLD (gan):<br>
     • ≥8 kỳ: xanh đậm<br>
     • 6–7 kỳ: xanh<br>
     • 4–5 kỳ: xanh nhạt
   </div>
   <div class="note-footer">
-    <i>Thống kê mang tính tham khảo.</i>
+    <i>Thống kê chỉ mang tính tham khảo</i>
   </div>
 </div>
 
@@ -126,16 +126,16 @@ button{
 let results = [];
 let index = 0;
 const WINDOW = 10;
-let lastApiFetch = 0;
-const API_COOLDOWN = 60 * 1000;
 
-/* ===== LOAD GITHUB DATA ===== */
+let lastApiFetch = 0;
+const API_COOLDOWN = 60000;
+
+/* ===== LOAD TỪ GITHUB ===== */
 async function loadFromGithub(){
   const res = await fetch("data/latest.json?t=" + Date.now());
   const json = await res.json();
-
   return json.data.items.map(it => ({
-    draw: it.drawCode,
+    draw: parseInt(it.drawCode,10),
     date: it.openDate.split(" ")[0],
     time: it.openDate,
     nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
@@ -148,12 +148,13 @@ async function fetchApiIfNeeded(latestDraw){
   lastApiFetch = Date.now();
 
   const res = await fetch(
-    "https://veso247.vn:19901/api/keno/result/keno?page_size=30&page_index=1"
+    "https://veso247.vn:19901/api/keno/result/keno?page_size=30&page_index=1",
+    { cache:"no-store" }
   );
   const json = await res.json();
 
   const apiItems = json.data.items.map(it => ({
-    draw: it.drawCode,
+    draw: parseInt(it.drawCode,10),
     date: it.openDate.split(" ")[0],
     time: it.openDate,
     nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
@@ -162,11 +163,10 @@ async function fetchApiIfNeeded(latestDraw){
   return apiItems.filter(it => it.draw > latestDraw);
 }
 
-/* ===== INIT ===== */
+/* ===== INIT HYBRID ===== */
 async function init(){
   const gh = await loadFromGithub();
-  const newestDraw = gh[0]?.draw || "0";
-
+  const newestDraw = gh[0]?.draw || 0;
   const apiNew = await fetchApiIfNeeded(newestDraw);
 
   results = [...apiNew, ...gh];
@@ -205,7 +205,7 @@ function render(){
   const tb = document.getElementById("board");
   tb.innerHTML = "";
 
-  let n = 1;
+  let n=1;
   for(let r=0;r<8;r++){
     let tr=document.createElement("tr");
     for(let c=0;c<10;c++){
@@ -233,13 +233,9 @@ function render(){
 function older(){ if(index+1<results.length){ index++; render(); } }
 function newer(){ if(index>0){ index--; render(); } }
 
-init();
-
-/* ===== AUTO CHECK KỲ MỚI (CHO TV KHỎI BẤM RELOAD) ===== */
+/* ===== AUTO CHECK KỲ MỚI (TV) ===== */
 let lastKnownDraw = null;
-let apiCooldown = 0;
 
-// lấy drawCode mới nhất từ API (nhẹ)
 async function getLatestDrawFromAPI(){
   try{
     const res = await fetch(
@@ -247,36 +243,27 @@ async function getLatestDrawFromAPI(){
       { cache:"no-store" }
     );
     const js = await res.json();
-    return parseInt(js.data.items[0].drawCode, 10);
+    return parseInt(js.data.items[0].drawCode,10);
   }catch(e){
     return null;
   }
 }
 
-// mỗi 30s kiểm tra có kỳ mới không
 setInterval(async ()=>{
   if(!results.length) return;
 
-  const now = Date.now();
-  if(now - apiCooldown < 60000) return; // khóa 1 phút
-
-  const currentDraw = parseInt(results[0].draw.replace("#",""),10);
+  const currentDraw = results[0].draw;
   if(lastKnownDraw === null) lastKnownDraw = currentDraw;
 
   const latest = await getLatestDrawFromAPI();
-  if(!latest) return;
-
-  if(latest > lastKnownDraw){
-    apiCooldown = now;
-    lastKnownDraw = latest;
-
-    console.log("🔄 Có kỳ mới, cập nhật bảng...");
-    await loadKenoData();
+  if(latest && latest > lastKnownDraw){
+    console.log("🔄 Có kỳ mới → reload");
+    location.reload();
   }
 }, 30000);
+
+init();
 </script>
 
 </body>
 </html>
-
-
