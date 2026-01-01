@@ -234,7 +234,48 @@ function older(){ if(index+1<results.length){ index++; render(); } }
 function newer(){ if(index>0){ index--; render(); } }
 
 init();
+<script>
+/* ===== AUTO CHECK KỲ MỚI (CHO TV KHỎI BẤM RELOAD) ===== */
+let lastKnownDraw = null;
+let apiCooldown = 0;
+
+// lấy drawCode mới nhất từ API (nhẹ)
+async function getLatestDrawFromAPI(){
+  try{
+    const res = await fetch(
+      "https://veso247.vn:19901/api/keno/result/keno?page_size=1&page_index=1",
+      { cache:"no-store" }
+    );
+    const js = await res.json();
+    return parseInt(js.data.items[0].drawCode, 10);
+  }catch(e){
+    return null;
+  }
+}
+
+// mỗi 30s kiểm tra có kỳ mới không
+setInterval(async ()=>{
+  if(!results.length) return;
+
+  const now = Date.now();
+  if(now - apiCooldown < 60000) return; // khóa 1 phút
+
+  const currentDraw = parseInt(results[0].draw.replace("#",""),10);
+  if(lastKnownDraw === null) lastKnownDraw = currentDraw;
+
+  const latest = await getLatestDrawFromAPI();
+  if(!latest) return;
+
+  if(latest > lastKnownDraw){
+    apiCooldown = now;
+    lastKnownDraw = latest;
+
+    console.log("🔄 Có kỳ mới, cập nhật bảng...");
+    await loadKenoData();
+  }
+}, 30000);
 </script>
 
 </body>
 </html>
+
