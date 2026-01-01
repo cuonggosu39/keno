@@ -13,77 +13,28 @@
 }
 body{
   font-family: Arial, sans-serif;
-  background:#fff;
   margin:0;
   padding:15px;
   text-align:center;
 }
-h2{ margin-bottom:6px; }
-button{
-  font-size:var(--font-btn);
-  padding:8px 18px;
-  margin:6px;
-  cursor:pointer;
-  border-radius:6px;
-}
-#info{
-  font-size:22px;
-  font-weight:bold;
-  margin:10px 0;
-}
-.nav{ margin-bottom:10px; }
-#board{
-  margin:0 auto;
-  border-collapse:collapse;
-}
+button{ font-size:18px; padding:6px 16px; margin:6px; }
+#info{ font-size:22px; font-weight:bold; margin:10px 0; }
+#board{ margin:0 auto; border-collapse:collapse; }
 #board td{
-  width:var(--cell-width);
-  height:var(--cell-height);
-  border:1px solid #aaa;
-  font-size:var(--font-cell);
-  text-align:center;
+  width:75px; height:55px; border:1px solid #aaa;
+  font-size:22px; text-align:center;
 }
 #board td:nth-child(5){ border-right:3px solid #000; }
 #board tr:nth-child(4) td{ border-bottom:3px solid #000; }
 
 .hit{ background:#4caf50; color:#fff; }
-.prev-hit{
-  text-decoration: underline;
-  text-decoration-thickness: 3px;
-  text-underline-offset: 6px;
-}
-
+.prev-hit{ text-decoration: underline; text-decoration-thickness:3px; }
 .hot1{ color:#ffcc80; font-weight:bold; }
 .hot2{ color:#ff9800; font-weight:bold; }
 .hot3{ color:#e65100; font-weight:bold; }
-
 .cold1{ color:#90caf9; }
 .cold2{ color:#1e88e5; font-weight:bold; }
 .cold3{ color:#0d47a1; font-weight:bold; }
-
-.note{
-  max-width:1200px;
-  margin:20px auto;
-  font-size:16px;
-  line-height:1.6;
-  text-align:left;
-}
-.note-grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap:12px;
-}
-.note-grid > div{
-  background:#fafafa;
-  padding:10px 12px;
-  border-radius:6px;
-}
-.note-title{ grid-column:1 / -1; }
-.note-footer{
-  grid-column:1 / -1;
-  text-align:center;
-  color:#555;
-}
 </style>
 </head>
 
@@ -92,57 +43,30 @@ button{
 <h2>Keno – Thống kê Hot / Cold (10 kỳ)</h2>
 <div id="info"></div>
 
-<div class="nav">
-  <button onclick="newer()">◀</button>
-  <button onclick="older()">▶</button>
-</div>
+<button onclick="newer()">◀</button>
+<button onclick="older()">▶</button>
 
 <table id="board"></table>
-
-<div class="note note-grid">
-  <div class="note-title"><b>Giải thích:</b></div>
-  <div>
-    🟢 Nền xanh: số trúng kỳ đang xem<br>
-    ▬ Gạch chân: trúng kỳ trước
-  </div>
-  <div>
-    🔥 HOT (10 kỳ):<br>
-    • 7–10 lần: cam đậm<br>
-    • 5–6 lần: cam<br>
-    • 4 lần: cam nhạt
-  </div>
-  <div>
-    ❄ COLD (gan):<br>
-    • ≥8 kỳ: xanh đậm<br>
-    • 6–7 kỳ: xanh<br>
-    • 4–5 kỳ: xanh nhạt
-  </div>
-  <div class="note-footer">
-    <i>Thống kê chỉ mang tính tham khảo</i>
-  </div>
-</div>
 
 <script>
 let results = [];
 let index = 0;
 const WINDOW = 10;
-
 let lastApiFetch = 0;
 const API_COOLDOWN = 60000;
 
-/* ===== LOAD TỪ GITHUB ===== */
+/* ===== LOAD GITHUB ===== */
 async function loadFromGithub(){
   const res = await fetch("data/latest.json?t=" + Date.now());
   const json = await res.json();
   return json.data.items.map(it => ({
     draw: parseInt(it.drawCode,10),
     date: it.openDate.split(" ")[0],
-    time: it.openDate,
-    nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
+    nums: Array.from({length:20},(_,i)=>+it["num"+(i+1)])
   }));
 }
 
-/* ===== FETCH API BÙ KỲ ===== */
+/* ===== FETCH API BÙ ===== */
 async function fetchApiIfNeeded(latestDraw){
   if(Date.now() - lastApiFetch < API_COOLDOWN) return [];
   lastApiFetch = Date.now();
@@ -153,23 +77,21 @@ async function fetchApiIfNeeded(latestDraw){
   );
   const json = await res.json();
 
-  const apiItems = json.data.items.map(it => ({
-    draw: parseInt(it.drawCode,10),
-    date: it.openDate.split(" ")[0],
-    time: it.openDate,
-    nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
-  }));
-
-  return apiItems.filter(it => it.draw > latestDraw);
+  return json.data.items
+    .map(it => ({
+      draw: parseInt(it.drawCode,10),
+      date: it.openDate.split(" ")[0],
+      nums: Array.from({length:20},(_,i)=>+it["num"+(i+1)])
+    }))
+    .filter(it => it.draw > latestDraw);
 }
 
-/* ===== INIT HYBRID ===== */
+/* ===== INIT ===== */
 async function init(){
   const gh = await loadFromGithub();
-  const newestDraw = gh[0]?.draw || 0;
-  const apiNew = await fetchApiIfNeeded(newestDraw);
-
-  results = [...apiNew, ...gh];
+  const newest = gh[0]?.draw || 0;
+  const api = await fetchApiIfNeeded(newest);
+  results = [...api, ...gh];
   render();
 }
 
@@ -177,11 +99,10 @@ async function init(){
 function calcStats(){
   let freq = Array(81).fill(0);
   let drought = Array(81).fill(0);
+  const end = Math.min(results.length, index+WINDOW);
+  const slice = results.slice(index,end);
 
-  const end = Math.min(results.length, index + WINDOW);
-  const slice = results.slice(index, end);
-
-  slice.forEach(r => r.nums.forEach(n => freq[n]++));
+  slice.forEach(r=>r.nums.forEach(n=>freq[n]++));
   for(let n=1;n<=80;n++){
     for(let i=index;i<end;i++){
       if(results[i].nums.includes(n)) break;
@@ -194,7 +115,6 @@ function calcStats(){
 /* ===== RENDER ===== */
 function render(){
   if(!results.length) return;
-
   const cur = results[index];
   const prev = results[index+1]?.nums || [];
   const {freq,drought} = calcStats();
@@ -204,8 +124,8 @@ function render(){
 
   const tb = document.getElementById("board");
   tb.innerHTML = "";
-
   let n=1;
+
   for(let r=0;r<8;r++){
     let tr=document.createElement("tr");
     for(let c=0;c<10;c++){
@@ -223,8 +143,7 @@ function render(){
       else if(drought[n]>=6) td.classList.add("cold2");
       else if(drought[n]>=4) td.classList.add("cold1");
 
-      tr.appendChild(td);
-      n++;
+      tr.appendChild(td); n++;
     }
     tb.appendChild(tr);
   }
@@ -244,16 +163,12 @@ async function getLatestDrawFromAPI(){
     );
     const js = await res.json();
     return parseInt(js.data.items[0].drawCode,10);
-  }catch(e){
-    return null;
-  }
+  }catch(e){ return null; }
 }
 
 setInterval(async ()=>{
   if(!results.length) return;
-
-  const currentDraw = results[0].draw;
-  if(lastKnownDraw === null) lastKnownDraw = currentDraw;
+  if(lastKnownDraw === null) lastKnownDraw = results[0].draw;
 
   const latest = await getLatestDrawFromAPI();
   if(latest && latest > lastKnownDraw){
