@@ -19,12 +19,6 @@ body{
   text-align:center;
 }
 h2{ margin-bottom:6px; }
-#countdown{
-  font-size:20px;
-  color:#d32f2f;
-  font-weight:bold;
-  margin-bottom:6px;
-}
 button{
   font-size:var(--font-btn);
   padding:8px 18px;
@@ -36,7 +30,6 @@ button{
   font-size:22px;
   font-weight:bold;
   margin:10px 0;
-  white-space:pre-line;
 }
 .nav{ margin-bottom:10px; }
 #board{
@@ -49,30 +42,31 @@ button{
   border:1px solid #aaa;
   font-size:var(--font-cell);
   text-align:center;
-  vertical-align:middle;
-  position: relative;
 }
 #board td:nth-child(5){ border-right:3px solid #000; }
 #board tr:nth-child(4) td{ border-bottom:3px solid #000; }
+
 .hit{ background:#4caf50; color:#fff; }
 .prev-hit{
   text-decoration: underline;
   text-decoration-thickness: 3px;
   text-underline-offset: 6px;
 }
+
 .hot1{ color:#ffcc80; font-weight:bold; }
 .hot2{ color:#ff9800; font-weight:bold; }
 .hot3{ color:#e65100; font-weight:bold; }
+
 .cold1{ color:#90caf9; }
 .cold2{ color:#1e88e5; font-weight:bold; }
 .cold3{ color:#0d47a1; font-weight:bold; }
+
 .note{
   max-width:1200px;
   margin:20px auto;
   font-size:16px;
   line-height:1.6;
   text-align:left;
-  padding:0 10px;
 }
 .note-grid{
   display:grid;
@@ -90,22 +84,12 @@ button{
   text-align:center;
   color:#555;
 }
-@media (max-width:600px){
-  :root{
-    --cell-width:50px;
-    --cell-height:45px;
-    --font-btn:22px;
-    --font-cell:16px;
-  }
-  #info{ font-size:18px; }
-}
 </style>
 </head>
 
 <body>
 
 <h2>Keno – Thống kê Hot / Cold (10 kỳ gần nhất)</h2>
-<div id="countdown"></div>
 <div id="info"></div>
 
 <div class="nav">
@@ -117,113 +101,111 @@ button{
 
 <div class="note note-grid">
   <div class="note-title"><b>Giải thích cho khách xem:</b></div>
-
   <div>
     🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
     ▬ <b>Gạch chân</b>: số trúng kỳ liền trước
   </div>
-
   <div>
-    🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
+    🔥 <b>HOT</b> (10 kỳ):<br>
     • 7–10 lần: cam đậm<br>
     • 5–6 lần: cam<br>
     • 4 lần: cam nhạt
   </div>
-
   <div>
-    ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
-    • ≥8 kỳ gan: xanh đậm<br>
-    • 6–7 kỳ gan: xanh<br>
-    • 4–5 kỳ gan: xanh nhạt
+    ❄ <b>COLD</b> (gan):<br>
+    • ≥8 kỳ: xanh đậm<br>
+    • 6–7 kỳ: xanh<br>
+    • 4–5 kỳ: xanh nhạt
   </div>
-
   <div class="note-footer">
-    <i>Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.</i>
+    <i>Thống kê mang tính tham khảo.</i>
   </div>
 </div>
 
 <script>
-let results=[];
-let index=0;
-const WINDOW=10;
+let results = [];
+let index = 0;
+const WINDOW = 10;
+let lastApiFetch = 0;
+const API_COOLDOWN = 60 * 1000;
 
-/* ===== LOAD DATA TỪ latest.json ===== */
-async function loadKenoData(){
+/* ===== LOAD GITHUB DATA ===== */
+async function loadFromGithub(){
   const res = await fetch("data/latest.json?t=" + Date.now());
   const json = await res.json();
 
-  const items = json.data.items;
+  return json.data.items.map(it => ({
+    draw: it.drawCode,
+    date: it.openDate.split(" ")[0],
+    time: it.openDate,
+    nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
+  }));
+}
 
-  results = items.map(it => {
-    let nums = [];
-    for(let i=1;i<=20;i++){
-      nums.push(parseInt(it["num"+i],10));
-    }
-    return {
-      date: it.openDate.split(" ")[0],
-      draw: "#"+it.drawCode,
-      time: it.openDate,
-      nums: nums
-    };
-  });
+/* ===== FETCH API BÙ KỲ ===== */
+async function fetchApiIfNeeded(latestDraw){
+  if(Date.now() - lastApiFetch < API_COOLDOWN) return [];
+  lastApiFetch = Date.now();
 
-  startCountdown(results[0].time);
+  const res = await fetch(
+    "https://veso247.vn:19901/api/keno/result/keno?page_size=30&page_index=1"
+  );
+  const json = await res.json();
+
+  const apiItems = json.data.items.map(it => ({
+    draw: it.drawCode,
+    date: it.openDate.split(" ")[0],
+    time: it.openDate,
+    nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
+  }));
+
+  return apiItems.filter(it => it.draw > latestDraw);
+}
+
+/* ===== INIT ===== */
+async function init(){
+  const gh = await loadFromGithub();
+  const newestDraw = gh[0]?.draw || "0";
+
+  const apiNew = await fetchApiIfNeeded(newestDraw);
+
+  results = [...apiNew, ...gh];
   render();
 }
 
-/* ===== COUNTDOWN KỲ TIẾP THEO ===== */
-function startCountdown(drawTime){
-  const [datePart, timePart] = drawTime.split(" ");
-  const [d, m, y] = datePart.split("/").map(Number);
-  const [hh, mm, ss] = timePart.split(":").map(Number);
-
-  const last = new Date(y, m-1, d, hh, mm, ss);
-  const next = new Date(last.getTime() + 5*60*1000);
-
-  setInterval(()=>{
-    const now = new Date();
-    let diff = Math.max(0, next - now);
-    let min = Math.floor(diff / 60000);
-    let sec = Math.floor((diff % 60000) / 1000);
-
-    document.getElementById("countdown").innerText =
-      `⏳ Kỳ tiếp theo sau: ${min}:${sec.toString().padStart(2,"0")}`;
-  },1000);
-}
-
+/* ===== STATS ===== */
 function calcStats(){
   let freq = Array(81).fill(0);
   let drought = Array(81).fill(0);
 
-  // luôn lấy tối đa 10 kỳ kể từ kỳ đang xem
   const end = Math.min(results.length, index + WINDOW);
   const slice = results.slice(index, end);
 
   slice.forEach(r => r.nums.forEach(n => freq[n]++));
-
   for(let n=1;n<=80;n++){
     for(let i=index;i<end;i++){
       if(results[i].nums.includes(n)) break;
       drought[n]++;
     }
   }
-  return {freq, drought};
+  return {freq,drought};
 }
 
+/* ===== RENDER ===== */
 function render(){
   if(!results.length) return;
 
-  let cur=results[index];
-  let prev=index+1<results.length?results[index+1].nums:[];
-  let {freq,drought}=calcStats();
+  const cur = results[index];
+  const prev = results[index+1]?.nums || [];
+  const {freq,drought} = calcStats();
 
-  document.getElementById("info").innerText=
-    `Ngày ${cur.date} – Kỳ ${cur.draw}`;
+  document.getElementById("info").innerText =
+    `Ngày ${cur.date} – Kỳ #${cur.draw}`;
 
-  let tb=document.getElementById("board");
-  tb.innerHTML="";
-  let n=1;
+  const tb = document.getElementById("board");
+  tb.innerHTML = "";
 
+  let n = 1;
   for(let r=0;r<8;r++){
     let tr=document.createElement("tr");
     for(let c=0;c<10;c++){
@@ -251,10 +233,8 @@ function render(){
 function older(){ if(index+1<results.length){ index++; render(); } }
 function newer(){ if(index>0){ index--; render(); } }
 
-loadKenoData();
+init();
 </script>
 
 </body>
 </html>
-
-
