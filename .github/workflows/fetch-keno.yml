@@ -11,8 +11,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Fetch API
         run: |
@@ -46,8 +44,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-          git pull --rebase
           git add data
           git commit -m "Update keno data" || exit 0
           git push
