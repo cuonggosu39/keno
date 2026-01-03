@@ -94,26 +94,6 @@ button{
   font-weight:bold;
   color:#333;
 }
-
-/* ===== MOBILE ===== */
-@media (max-width:900px){
-  .main-layout{
-    flex-direction:column;
-    align-items:center;
-  }
-  .note-box{
-    width:95%;
-  }
-}
-@media (max-width:600px){
-  :root{
-    --cell-width:50px;
-    --cell-height:45px;
-    --font-btn:22px;
-    --font-cell:16px;
-  }
-  #info{ font-size:18px; }
-}
 </style>
 </head>
 
@@ -128,8 +108,6 @@ button{
 </div>
 
 <div class="main-layout">
-
-  <!-- CHÚ THÍCH TRÁI -->
   <div class="note-box">
     🔥 <b>HOT</b> – xuất hiện trong 10 kỳ gần nhất:<br>
     • 7–10 lần: cam đậm<br>
@@ -137,25 +115,13 @@ button{
     • 4 lần: cam nhạt
   </div>
 
-  <!-- BẢNG -->
   <table id="board"></table>
 
-  <!-- CHÚ THÍCH PHẢI -->
   <div class="note-box">
     ❄ <b>COLD (gan)</b> – số không xuất hiện liên tiếp:<br>
     • ≥8 kỳ gan: xanh đậm<br>
     • 6–7 kỳ gan: xanh<br>
     • 4–5 kỳ gan: xanh nhạt
-  </div>
-
-</div>
-
-<!-- CHÚ THÍCH DƯỚI BẢNG -->
-<div class="note-under">
-  🟢 <b>Nền xanh lá</b>: số trúng kỳ đang xem<br>
-  ▬ <b>Gạch chân</b>: số trúng kỳ liền trước
-  <div class="note-footer">
-    Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.
   </div>
 </div>
 
@@ -163,122 +129,86 @@ button{
 let results = [];
 let index = 0;
 const WINDOW = 10;
-let lastApiFetch = 0;
-const API_COOLDOWN = 60 * 1000;
-let lastKnownDraw = null;
 
-/* ===== LOAD DATA TỪ GITHUB ===== */
+/* ===== LOAD DATA ===== */
 async function loadFromGithub(){
   const res = await fetch("data/latest.json?t=" + Date.now());
   const json = await res.json();
   return json.data.items.map(it => ({
     draw: parseInt(it.drawCode,10),
     date: it.openDate.split(" ")[0],
-    time: it.openDate,
     nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
   }));
 }
 
-/* ===== FETCH API BÙ KỲ ===== */
-async function fetchApiIfNeeded(latestDraw){
-  if(Date.now() - lastApiFetch < API_COOLDOWN) return [];
-  lastApiFetch = Date.now();
-  const res = await fetch(
-    "https://veso247.vn:19901/api/keno/result/keno?page_size=30&page_index=1",
-    { cache:"no-store" }
-  );
-  const json = await res.json();
-  return json.data.items
-    .map(it => ({
-      draw: parseInt(it.drawCode,10),
-      date: it.openDate.split(" ")[0],
-      time: it.openDate,
-      nums: Array.from({length:20},(_,i)=>parseInt(it["num"+(i+1)],10))
-    }))
-    .filter(it => it.draw > latestDraw);
-}
-
-/* ===== INIT ===== */
 async function init(){
-  const gh = await loadFromGithub();
-  const newestDraw = gh[0]?.draw || 0;
-  const apiNew = await fetchApiIfNeeded(newestDraw);
-  results = [...apiNew, ...gh];
+  results = await loadFromGithub();
   render();
 }
 init();
 
-/* ===== AUTO RELOAD ===== */
-async function getLatestDrawFromAPI(){
-  try{
-    const res = await fetch(
-      "https://veso247.vn:19901/api/keno/result/keno?page_size=1&page_index=1",
-      { cache:"no-store" }
-    );
-    const js = await res.json();
-    return parseInt(js.data.items[0].drawCode,10);
-  }catch(e){ return null; }
-}
-setInterval(async ()=>{
-  if(!results.length) return;
-  if(lastKnownDraw === null) lastKnownDraw = results[0].draw;
-  const latest = await getLatestDrawFromAPI();
-  if(latest && latest > lastKnownDraw) location.reload();
-},30000);
-
-/* ===== STATS + RENDER (GIỮ NGUYÊN) ===== */
+/* ===== STATS ===== */
 function calcStats(){
-  let freq = Array(81).fill(0);     // HOT: 10 kỳ
-  let drought = Array(81).fill(0);  // COLD: gan toàn lịch sử
+  let freq = Array(81).fill(0);
+  let drought = Array(81).fill(0);
 
-  /* ===== HOT – 10 kỳ gần nhất ===== */
   const end = Math.min(results.length, index + WINDOW);
   const slice = results.slice(index, end);
+
+  /* HOT – 10 kỳ */
   slice.forEach(r => r.nums.forEach(n => freq[n]++));
 
-  /* ===== COLD (GAN) – TOÀN LỊCH SỬ ===== */
+  /* COLD – 10 kỳ (ĐÚNG LOGIC) */
   for (let n = 1; n <= 80; n++) {
-    for (let i = index; i < results.length; i++) {
-      if (results[i].nums.includes(n)) break;
+    for (let i = 0; i < slice.length; i++) {
+      if (slice[i].nums.includes(n)) break;
       drought[n]++;
     }
   }
 
   return { freq, drought };
 }
+
+/* ===== RENDER ===== */
 function render(){
-  if(!results.length) return;
   const cur = results[index];
   const prev = results[index+1]?.nums || [];
   const {freq,drought} = calcStats();
+
   document.getElementById("info").innerText =
     `Ngày ${cur.date} – Kỳ #${cur.draw}`;
+
   const tb = document.getElementById("board");
   tb.innerHTML = "";
+
   let n = 1;
   for(let r=0;r<8;r++){
     let tr=document.createElement("tr");
     for(let c=0;c<10;c++){
       let td=document.createElement("td");
       td.textContent=n.toString().padStart(2,"0");
+
       if(cur.nums.includes(n)) td.classList.add("hit");
       if(prev.includes(n)) td.classList.add("prev-hit");
+
       if(freq[n]>=7) td.classList.add("hot3");
       else if(freq[n]>=5) td.classList.add("hot2");
       else if(freq[n]===4) td.classList.add("hot1");
+
       if(drought[n]>=8) td.classList.add("cold3");
       else if(drought[n]>=6) td.classList.add("cold2");
       else if(drought[n]>=4) td.classList.add("cold1");
+
       tr.appendChild(td);
       n++;
     }
     tb.appendChild(tr);
   }
 }
+
 function older(){ if(index+1<results.length){ index++; render(); } }
 function newer(){ if(index>0){ index--; render(); } }
 </script>
 
 </body>
 </html>
-
