@@ -234,11 +234,13 @@ function calcStats(){
   const slice = results.slice(index, end);
   slice.forEach(r => r.nums.forEach(n => freq[n]++));
   for(let n=1;n<=80;n++){
-    for(let i=index;i<end;i++){
-      if(results[i].nums.includes(n)) break;
-      drought[n]++;
-    }
+  let d = 0;
+  for(let i=index;i<results.length;i++){
+    if(results[i].nums.includes(n)) break;
+    d++;
   }
+  drought[n] = d;
+}
   return {freq,drought};
 }
 function render(){
@@ -276,3 +278,4 @@ function newer(){ if(index>0){ index--; render(); } }
 
 </body>
 </html>
+
