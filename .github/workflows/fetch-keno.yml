@@ -12,20 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1️⃣ Fetch API (chỉ cần 10–20 kỳ để bù)
       - name: Fetch API
         run: |
           mkdir -p data
-          curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=20&page_index=1" > data/api.json
+          curl -s "https://veso247.vn:19901/api/keno/result/keno?page_size=10&page_index=1" > data/latest.json
 
-      # 2️⃣ Update history.json
       - name: Update history
         run: |
           node <<'EOF'
           const fs = require('fs');
 
-          const api = JSON.parse(fs.readFileSync('data/api.json','utf8'));
-          const items = api.data.items;
+          const latest = JSON.parse(fs.readFileSync('data/latest.json','utf8'));
+          const items = latest.data.items;
 
           let history = [];
           if (fs.existsSync('data/history.json')) {
@@ -34,38 +32,15 @@ jobs:
 
           const existing = new Set(history.map(x => x.drawCode));
 
-          // thêm từ cũ → mới
           items.reverse().forEach(it => {
             if (!existing.has(it.drawCode)) {
               history.push(it);
             }
           });
 
-          // sắp xếp history tăng dần (cũ → mới)
-          history.sort((a,b) => Number(a.drawCode) - Number(b.drawCode));
-
           fs.writeFileSync('data/history.json', JSON.stringify(history, null, 2));
           EOF
 
-      # 3️⃣ BUILD latest.json = 30 KỲ MỚI NHẤT
-      - name: Build latest.json (30 draws)
-        run: |
-          node <<'EOF'
-          const fs = require('fs');
-
-          const history = JSON.parse(fs.readFileSync('data/history.json','utf8'));
-
-          const latest = history
-            .slice(-30)           // lấy 30 kỳ mới nhất
-            .reverse();           // mới nhất lên đầu
-
-          fs.writeFileSync(
-            'data/latest.json',
-            JSON.stringify({ data: { items: latest } }, null, 2)
-          );
-          EOF
-
-      # 4️⃣ Commit & Push
       - name: Commit & Push
         run: |
           git config user.name "github-actions"
