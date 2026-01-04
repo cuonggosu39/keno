@@ -229,19 +229,24 @@ setInterval(async ()=>{
 /* ===== STATS + RENDER (GIỮ NGUYÊN) ===== */
 function calcStats(){
   let freq = Array(81).fill(0);
-  let drought = Array(81).fill(0);
+  let drought = Array(81).fill(WINDOW); // mặc định: không ra trong window => gan = WINDOW
+
   const end = Math.min(results.length, index + WINDOW);
   const slice = results.slice(index, end);
+
+  // đếm HOT (giữ nguyên)
   slice.forEach(r => r.nums.forEach(n => freq[n]++));
-  for(let n=1;n<=80;n++){
-  let d = 0;
-  for(let i=index;i<results.length;i++){
-    if(results[i].nums.includes(n)) break;
-    d++;
-  }
-  drought[n] = d;
-}
-  return {freq,drought};
+
+  // đếm GAN đúng theo 10 kỳ
+  slice.forEach((r, i) => {
+    r.nums.forEach(n => {
+      if (drought[n] === WINDOW) {
+        drought[n] = i;
+      }
+    });
+  });
+
+  return {freq, drought};
 }
 function render(){
   if(!results.length) return;
@@ -278,4 +283,5 @@ function newer(){ if(index>0){ index--; render(); } }
 
 </body>
 </html>
+
 
