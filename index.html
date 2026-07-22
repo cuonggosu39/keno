@@ -160,6 +160,7 @@ font-size:16px;
 <p id="msg"></p>
 
 </div>
+<div id="app" style="display:none;">
 <h2>Keno – Thống kê Hot / Cold (10 kỳ gần nhất)</h2>
 <div id="info"></div>
 
@@ -281,8 +282,23 @@ async function init(){
   results = [...apiNew, ...gh];
   render();
 }
-init();
+auth.onAuthStateChanged(function(user){
 
+  if(user){
+
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    init();
+
+  }else{
+
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("app").style.display = "none";
+
+  }
+
+});
 /* ===== AUTO RELOAD ===== */
 async function getLatestDrawFromAPI(){
   try{
@@ -353,8 +369,11 @@ function render(){
   }
 }
 function older(){ if(index+1<results.length){ index++; render(); } }
+...
 function newer(){ if(index>0){ index--; render(); } }
 </script>
+
+</div>
 
 </body>
 </html>
