@@ -214,6 +214,27 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+document.getElementById("loginBtn").addEventListener("click", async () => {
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("msg");
+
+  msg.innerHTML = "Đang đăng nhập...";
+
+  try {
+
+    await auth.signInWithEmailAndPassword(email, password);
+
+    msg.innerHTML = "✅ Đăng nhập thành công";
+
+  } catch (err) {
+
+    msg.innerHTML = "❌ " + err.message;
+
+  }
+
+});
 let results = [];
 let index = 0;
 const WINDOW = 10;
