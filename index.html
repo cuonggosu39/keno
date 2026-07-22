@@ -161,6 +161,16 @@ font-size:16px;
 
 </div>
 <div id="app" style="display:none;">
+
+<div style="text-align:right;margin-bottom:10px;">
+
+<span id="userEmail"></span>
+
+<button id="logoutBtn">
+Đăng xuất
+</button>
+
+</div>
 <h2>Keno – Thống kê Hot / Cold (10 kỳ gần nhất)</h2>
 <div id="info"></div>
 
@@ -215,6 +225,11 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+
+    await auth.signOut();
+
+});
 document.getElementById("loginBtn").addEventListener("click", async () => {
 
   const email = document.getElementById("email").value.trim();
@@ -289,12 +304,18 @@ auth.onAuthStateChanged(function(user){
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("app").style.display = "block";
 
-    init();
+    document.getElementById("userEmail").innerText = "👤 " + user.email;
+
+    if(results.length === 0){
+      init();
+    }
 
   }else{
 
     document.getElementById("loginBox").style.display = "block";
     document.getElementById("app").style.display = "none";
+
+    document.getElementById("userEmail").innerText = "";
 
   }
 
