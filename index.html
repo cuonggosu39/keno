@@ -158,8 +158,21 @@ button{
     Kết quả thống kê chỉ mang tính chất tham khảo – Keno là trò chơi giải trí.
   </div>
 </div>
-
+<script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-auth-compat.js"></script>
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCkYL3cFQb2seMm1BRX9HTpnQ1JRrUFkaE",
+  authDomain: "keno3979.firebaseapp.com",
+  projectId: "keno3979",
+  storageBucket: "keno3979.firebasestorage.app",
+  messagingSenderId: "793948728871",
+  appId: "1:793948728871:web:fa0b728f8f72e10a9fa802",
+  measurementId: "G-Q0DH0F6XE8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 let results = [];
 let index = 0;
 const WINDOW = 10;
